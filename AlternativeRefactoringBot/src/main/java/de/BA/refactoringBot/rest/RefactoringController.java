@@ -101,14 +101,14 @@ public class RefactoringController {
 						dataGetter.pushChanges(gitConfig.get());
 
 						// Erstelle Request-Objekt zum Senden
-						GithubSendPullRequest sendRequest = translator.createSendRequest(request);
+						GithubSendPullRequest sendRequest = translator.createSendRequest(request, gitConfig.get());
 						// Aktualisiere Pull-Request auf Github
 						grabber.updatePullRequest(sendRequest, gitConfig.get(), request.getRequestNumber());
 						// Bearbeite Kommentar
 						grabber.editToBotComment(translator.editComment(comment), gitConfig.get(),
 								comment.getCommentID());
 						// Antworte auf Kommentar
-						grabber.responseToBotComment(translator.createReplyComment(comment), gitConfig.get(),
+						grabber.responseToBotComment(translator.createReplyComment(comment, gitConfig.get()), gitConfig.get(),
 								request.getRequestNumber());
 					} catch (GitAPIException | IOException e) {
 						e.printStackTrace();

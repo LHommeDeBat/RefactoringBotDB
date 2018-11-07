@@ -167,7 +167,7 @@ public class GithubObjectTranslator {
 	 * @param refactoredRequest
 	 * @return sendRequest
 	 */
-	public GithubSendPullRequest createSendRequest(MyPullRequest refactoredRequest) {
+	public GithubSendPullRequest createSendRequest(MyPullRequest refactoredRequest, GitConfiguration gitConfig) {
 		// Erstelle Request
 		GithubSendPullRequest sendRequest = new GithubSendPullRequest();
 
@@ -178,7 +178,7 @@ public class GithubObjectTranslator {
 
 		// Fülle Request mit Daten
 		sendRequest.setTitle("Bot Pull-Request");
-		sendRequest.setBody("Von " + botConfig.getBotUsername() + " am " + date + " aktualisiert.");
+		sendRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " aktualisiert.");
 		sendRequest.setBase(refactoredRequest.getMergeBranchName());
 		sendRequest.setState(refactoredRequest.getRequestStatus());
 		sendRequest.setMaintainer_can_modify(true);
@@ -225,7 +225,7 @@ public class GithubObjectTranslator {
 	 * @param replyTo
 	 * @return comment
 	 */
-	public ReplyComment createReplyComment(MyPullRequestComment replyTo) {
+	public ReplyComment createReplyComment(MyPullRequestComment replyTo, GitConfiguration gitConfig) {
 		// Erstelle Kommentar
 		ReplyComment comment = new ReplyComment();
 		// Fülle mit Daten
@@ -237,7 +237,7 @@ public class GithubObjectTranslator {
 		String date = sdf.format(now);
 
 		// Erstelle Antwort
-		comment.setBody("Refactored von " + botConfig.getBotUsername() + " am " + date);
+		comment.setBody("Refactored von " + gitConfig.getBotName() + " am " + date);
 
 		// Gebe Kommentar zurück
 		return comment;
