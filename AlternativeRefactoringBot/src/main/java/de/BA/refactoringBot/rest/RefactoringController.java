@@ -35,8 +35,8 @@ import io.swagger.annotations.ApiOperation;
  *
  */
 @RestController
-@RequestMapping(path = "/botService")
-public class ServiceController {
+@RequestMapping(path = "/refactorings")
+public class RefactoringController {
 
 	@Autowired
 	GithubDataGrabber grabber;
@@ -55,9 +55,9 @@ public class ServiceController {
 	 * @param configID
 	 * @return allRequests
 	 */
-	@RequestMapping(value = "/testGitHubAPI/{configID}", method = RequestMethod.GET, produces = "application/json")
+	@RequestMapping(value = "/refactorWithComments/{configID}", method = RequestMethod.GET, produces = "application/json")
 	@ApiOperation(value = "Gibt Repoliste von Github zurück")
-	public ResponseEntity<?> testGitHubAPI(@PathVariable Long configID) {
+	public ResponseEntity<?> refactorWithComments(@PathVariable Long configID) {
 
 		// Hole Git-Konfiguration für Bot falls Existiert
 		Optional<GitConfiguration> gitConfig = configRepo.findById(configID);
@@ -77,7 +77,7 @@ public class ServiceController {
 		}
 
 		// Übersetze GitHub-Objekt in Eigenes
-		MyPullRequests allRequests = translator.translateRequests(response);
+		MyPullRequests allRequests = translator.translateRequests(response, gitConfig.get());
 
 		// Gehe alle PullRequests durch
 		for (MyPullRequest request : allRequests.getAllPullRequests()) {
@@ -88,17 +88,17 @@ public class ServiceController {
 					// Versuche zu Pullen
 					try {
 						// Pulle Repo zum Arbeiten
-						dataGetter.pullGithubRepo(gitConfig.get().getRepoGitLink());
+						dataGetter.pullGithubRepo(gitConfig.get().getForkGitLink());
 						// Wechsle zum Branch des PullRequests
 						dataGetter.checkoutBranch(request.getBranchName());
 
 						// TODO: Später durch Refactoring ersetzen - Erstelle File
-						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text4.txt");
+						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text5.txt");
 						f.getParentFile().mkdirs();
 						f.createNewFile();
 
 						// Pushe Änderungen
-						dataGetter.pushChanges();
+						dataGetter.pushChanges(gitConfig.get());
 
 						// Erstelle Request-Objekt zum Senden
 						GithubSendPullRequest sendRequest = translator.createSendRequest(request);
@@ -122,5 +122,4 @@ public class ServiceController {
 		// Gebe übersetzte Requests zurück
 		return new ResponseEntity<MyPullRequests>(allRequests, HttpStatus.OK);
 	}
-
 }

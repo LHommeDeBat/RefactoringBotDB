@@ -19,5 +19,5 @@ spring:
 bot:
   botUsername: LHommeDeBot
   botPassword: Botboy55
-  botToken: 186c62963544b8a90c6fab4299e6f8d6c6eabb9c
+  botToken: 6afffb5e098f5878a74dbd74e40ec71a0db304f0
   botWorkingDirectory: C:\\Users\\stefa\\Bachelorarbeit-Repos\\PullFolder\\workingRepo

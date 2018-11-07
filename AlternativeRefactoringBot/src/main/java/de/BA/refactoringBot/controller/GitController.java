@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.BA.refactoringBot.configuration.BotConfiguration;
+import de.BA.refactoringBot.model.configuration.GitConfiguration;
 
 /**
  * Diese Klasse nutzt Git programmatisch mittels JGit.
@@ -97,7 +98,7 @@ public class GitController {
 	 * @throws AbortedByHookException
 	 * @throws GitAPIException
 	 */
-	public void pushChanges() throws IOException, NoHeadException, NoMessageException, UnmergedPathsException,
+	public void pushChanges(GitConfiguration gitConfig) throws IOException, NoHeadException, NoMessageException, UnmergedPathsException,
 			ConcurrentRefUpdateException, WrongRepositoryStateException, AbortedByHookException, GitAPIException {
 		// Öffne Arbeitsverzeichnis
 		Git git = Git.open(new File(botConfig.getBotWorkingDirectory()));
@@ -108,7 +109,7 @@ public class GitController {
 		// Pushe mit Bot-Daten
 		git.push()
 				.setCredentialsProvider(
-						new UsernamePasswordCredentialsProvider(botConfig.getBotUsername(), botConfig.getBotPassword()))
+						new UsernamePasswordCredentialsProvider(gitConfig.getBotName(), gitConfig.getBotPassword()))
 				.call();
 		git.close();
 	}

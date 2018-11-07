@@ -1,5 +1,5 @@
 
-package de.BA.refactoringBot.model.githubModels.collaboration.invite;
+package de.BA.refactoringBot.model.githubModels.fork;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "type",
     "site_admin"
 })
-public class Invitee {
+public class Owner {
 
     @JsonProperty("login")
     private String login;

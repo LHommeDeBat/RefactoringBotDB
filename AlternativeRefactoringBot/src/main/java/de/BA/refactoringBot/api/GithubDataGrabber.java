@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
-import de.BA.refactoringBot.model.githubModels.collaboration.invite.Invite;
+import de.BA.refactoringBot.model.githubModels.fork.GithubFork;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubSendPullRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequests;
@@ -57,14 +57,15 @@ public class GithubDataGrabber {
 	 * @param repoService
 	 * @return {Repository-File}
 	 */
-	public Repository checkRepository(String repoName, String repoOwner, String repoService) {
+	public Repository checkRepository(String repoName, String repoOwner, String repoService, String botToken) {
 		// Baue URL
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
 				.path("/repos/" + repoOwner + "/" + repoName);
 
-		apiUriBuilder.queryParam("access_token", botConfig.getBotToken());
+		apiUriBuilder.queryParam("access_token", botToken);
 
 		URI githubURI = apiUriBuilder.build().encode().toUri();
+
 		// Erstelle REST-Template
 		RestTemplate rest = new RestTemplate();
 		// Baue Header
@@ -82,97 +83,6 @@ public class GithubDataGrabber {
 	}
 
 	/**
-	 * Diese Methode lädt den Bot zum neu-hinzugeüften Repo ein (falls dieser nicht
-	 * schon eingeladen bzw. Collaborator des Repos ist).
-	 * 
-	 * @param gitConfig
-	 * @param repoAdminToken
-	 * @return invite
-	 */
-	public Invite inviteBotToRepo(GitConfiguration gitConfig, String repoAdminToken) {
-		// Baue URL
-		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
-				.path("/repos/" + gitConfig.getRepoOwner() + "/" + gitConfig.getRepoName() + "/collaborators/"
-						+ botConfig.getBotUsername());
-
-		apiUriBuilder.queryParam("permission", "push");
-		apiUriBuilder.queryParam("access_token", repoAdminToken);
-
-		URI githubURI = apiUriBuilder.build().encode().toUri();
-		// Erstelle REST-Template
-		RestTemplate rest = new RestTemplate();
-
-		// Sende Anfrage an GitHub-API und hole Json
-		try {
-			return rest.exchange(githubURI, HttpMethod.PUT, null, Invite.class).getBody();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * Diese Methode ermöglicht dem Bot eine Einladung in ein Repo anzunehmen.
-	 * 
-	 * @param savedConfig
-	 * @param id
-	 */
-	public void acceptInvite(GitConfiguration gitConfig, Integer inviteID) {
-		// Baue URL
-		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
-				.path("/user/repository_invitations/" + inviteID);
-
-		apiUriBuilder.queryParam("access_token", botConfig.getBotToken());
-
-		URI githubURI = apiUriBuilder.build().encode().toUri();
-
-		// Header-Umweg für PATCH-Requests
-		HttpHeaders headers = new HttpHeaders();
-		MediaType mediaType = new MediaType("application", "merge-patch+json");
-		headers.setContentType(mediaType);
-
-		// Erstellen des REST-Template mit PATCH-Umweg
-		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-		RestTemplate rest = new RestTemplate(requestFactory);
-
-		// Sende Anfrage an GitHub-API und hole Json
-		try {
-			rest.exchange(githubURI, HttpMethod.PATCH, null, String.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	/**
-	 * Diese Methode löscht den Bot aus dem Repository wenn die Konfiguration des
-	 * Repository gelöscht wird.
-	 * 
-	 * @param gitConfig
-	 * @param repoAdminToken
-	 */
-	public void deleteBotFromRepository(GitConfiguration gitConfig, String repoAdminToken) {
-		// Baue URL
-		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
-				.path("/repos/" + gitConfig.getRepoOwner() + "/" + gitConfig.getRepoName() + "/collaborators/"
-						+ botConfig.getBotUsername());
-
-		apiUriBuilder.queryParam("access_token", repoAdminToken);
-
-		// Baue URI
-		URI githubURI = apiUriBuilder.build().encode().toUri();
-
-		// Erstelle Rest-Template
-		RestTemplate rest = new RestTemplate();
-		// Sende Anfrage an GitHub-API und hole Json
-		try {
-			rest.exchange(githubURI, HttpMethod.DELETE, null, String.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
 	 * Diese Methode holt alle PullRequests aus dem in der Konfigurationsdatei
 	 * eingestellten Repository
 	 * 
@@ -181,13 +91,13 @@ public class GithubDataGrabber {
 	 */
 	public PullRequests getAllPullRequests(GitConfiguration gitConfig) throws URISyntaxException {
 		// Lese API-URI aus Konfiguration aus
-		URI configUri = new URI(gitConfig.getRepoApiLink());
+		URI configUri = new URI(gitConfig.getForkApiLink());
 
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath() + "/pulls");
 
-		apiUriBuilder.queryParam("access_token", botConfig.getBotToken());
+		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
 
 		URI pullsUri = apiUriBuilder.build().encode().toUri();
 		// Erstelle REST-Template
@@ -219,12 +129,12 @@ public class GithubDataGrabber {
 	 * 
 	 * @return allRequests
 	 */
-	public PullRequestComments getAllPullRequestComments(URI commentsUri) {
+	public PullRequestComments getAllPullRequestComments(URI commentsUri, GitConfiguration gitConfig) {
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(commentsUri.getScheme())
 				.host(commentsUri.getHost()).path(commentsUri.getPath());
 
-		apiUriBuilder.queryParam("access_token", botConfig.getBotToken());
+		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
 
 		URI githubURI = apiUriBuilder.build().encode().toUri();
 		// Erstelle REST-Template
@@ -260,13 +170,13 @@ public class GithubDataGrabber {
 	 */
 	public void updatePullRequest(GithubSendPullRequest send, GitConfiguration gitConfig, Integer requestNumber)
 			throws URISyntaxException {
-		URI configUri = new URI(gitConfig.getRepoApiLink());
+		URI configUri = new URI(gitConfig.getForkApiLink());
 
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath() + "/pulls/" + requestNumber);
 
-		apiUriBuilder.queryParam("access_token", botConfig.getBotToken());
+		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
 
 		URI pullsUri = apiUriBuilder.build().encode().toUri();
 
@@ -297,13 +207,13 @@ public class GithubDataGrabber {
 	 */
 	public void editToBotComment(EditComment comment, GitConfiguration gitConfig, Integer commentNumber)
 			throws URISyntaxException {
-		URI configUri = new URI(gitConfig.getRepoApiLink());
+		URI configUri = new URI(gitConfig.getForkApiLink());
 
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath() + "/pulls/comments/" + commentNumber);
 
-		apiUriBuilder.queryParam("access_token", botConfig.getBotToken());
+		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
 
 		URI pullsUri = apiUriBuilder.build().encode().toUri();
 
@@ -334,13 +244,13 @@ public class GithubDataGrabber {
 	 */
 	public void responseToBotComment(ReplyComment comment, GitConfiguration gitConfig, Integer requestNumber)
 			throws URISyntaxException {
-		URI configUri = new URI(gitConfig.getRepoApiLink());
+		URI configUri = new URI(gitConfig.getForkApiLink());
 
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath() + "/pulls/" + requestNumber + "/comments");
 
-		apiUriBuilder.queryParam("access_token", botConfig.getBotToken());
+		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
 
 		URI pullsUri = apiUriBuilder.build().encode().toUri();
 
@@ -352,6 +262,65 @@ public class GithubDataGrabber {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Diese Methode erstellt für den Bot einen Fork auf Github mit dem vom Nutzer
+	 * angegebenen Daten
+	 * 
+	 * @param gitConfig
+	 * @return
+	 * @throws URISyntaxException
+	 */
+	public GithubFork createFork(GitConfiguration gitConfig) throws URISyntaxException {
+		URI configUri = new URI(gitConfig.getForkApiLink());
+
+		// Baue URI
+		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
+				.host(configUri.getHost()).path(configUri.getPath() + "/forks");
+
+		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
+
+		URI forksUri = apiUriBuilder.build().encode().toUri();
+
+		RestTemplate rest = new RestTemplate();
+
+		// Sende Anfrage an GitHub-API und hole Json
+		try {
+			return rest.exchange(forksUri, HttpMethod.POST, null, GithubFork.class).getBody();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Diese Methode löscht das Fork-Repository des Bots wenn die passende
+	 * Konfiguration gelöscht wurde.
+	 * 
+	 * @param gitConfiguration
+	 * @throws URISyntaxException 
+	 */
+	public void deleteRepository(GitConfiguration gitConfig) throws URISyntaxException {
+		URI configUri = new URI(gitConfig.getForkApiLink());
+
+		// Baue URI
+		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
+				.host(configUri.getHost()).path(configUri.getPath());
+
+		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
+
+		URI repoUri = apiUriBuilder.build().encode().toUri();
+
+		RestTemplate rest = new RestTemplate();
+
+		// Sende Anfrage an GitHub-API und hole Json
+		try {
+			rest.exchange(repoUri, HttpMethod.DELETE, null, String.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }

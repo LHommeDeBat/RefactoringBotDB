@@ -39,6 +39,8 @@ public class GithubObjectTranslator {
 	@Autowired
 	BotConfiguration botConfig;
 
+	// ALTE METHODEN
+
 	/**
 	 * Diese Methode ertellt eine Konfiguration eines Repos.
 	 * 
@@ -56,7 +58,26 @@ public class GithubObjectTranslator {
 		config.setRepoName(repo.getName());
 		config.setRepoOwner(repo.getOwner().getLogin());
 		config.setRepoService(repoService.toLowerCase());
-		
+
+		// Gebe Konfiguration zurück
+		return config;
+	}
+
+	/**
+	 * Diese Methode aktualisiert die Konfiguration mit den Eigenschaften des
+	 * erstellten Forks bei der Erstellung einer Konfiguration.
+	 * 
+	 * @param config
+	 * @return config
+	 */
+	public GitConfiguration updateConfiguration(GitConfiguration config, String botUsername, String botPassword,
+			String botToken) {
+		// Aktualisiere fehlende Daten
+		config.setBotName(botUsername);
+		config.setBotPassword(botPassword);
+		config.setBotToken(botToken);
+		config.setForkApiLink("https://api.github.com/repos/" + botUsername + "/" + config.getRepoName());
+		config.setForkGitLink("https://github.com/" + botUsername + "/" + config.getRepoName() + ".git");
 		// Gebe Konfiguration zurück
 		return config;
 	}
@@ -68,7 +89,7 @@ public class GithubObjectTranslator {
 	 * @param githubRequests
 	 * @return translatedRequests
 	 */
-	public MyPullRequests translateRequests(PullRequests githubRequests) {
+	public MyPullRequests translateRequests(PullRequests githubRequests, GitConfiguration gitConfig) {
 		// Erstelle Liste von übersetzten Objekten
 		MyPullRequests translatedRequests = new MyPullRequests();
 
@@ -93,7 +114,7 @@ public class GithubObjectTranslator {
 			// Versuche die Kommentare des PullRequests zu holen und zu übersetzen
 			try {
 				URI commentUri = new URI(githubRequest.getReviewCommentsUrl());
-				PullRequestComments githubComments = grabber.getAllPullRequestComments(commentUri);
+				PullRequestComments githubComments = grabber.getAllPullRequestComments(commentUri, gitConfig);
 				MyPullRequestComments comments = translatePullRequestComments(githubComments);
 				pullRequest.setAllComments(comments.getComments());
 			} catch (URISyntaxException e) {
@@ -150,9 +171,14 @@ public class GithubObjectTranslator {
 		// Erstelle Request
 		GithubSendPullRequest sendRequest = new GithubSendPullRequest();
 
+		// Erstelle heutiges Datum
+		SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
+		Date now = new Date();
+		String date = sdf.format(now);
+
 		// Fülle Request mit Daten
 		sendRequest.setTitle("Bot Pull-Request");
-		sendRequest.setBody("Von " + botConfig.getBotUsername() + " automatisch generiert.");
+		sendRequest.setBody("Von " + botConfig.getBotUsername() + " am " + date + " aktualisiert.");
 		sendRequest.setBase(refactoredRequest.getMergeBranchName());
 		sendRequest.setState(refactoredRequest.getRequestStatus());
 		sendRequest.setMaintainer_can_modify(true);

@@ -18,6 +18,12 @@ public class GitConfiguration {
 	private String repoGitLink;
 	private String repoService;
 	
+	private String botName;
+	private String botPassword;
+	private String botToken;
+	private String forkApiLink;
+	private String forkGitLink;
+	
 	public Long getId() {
 		return id;
 	}
@@ -60,6 +66,46 @@ public class GitConfiguration {
 
 	public void setRepoService(String repoService) {
 		this.repoService = repoService;
+	}
+
+	public String getBotName() {
+		return botName;
+	}
+
+	public void setBotName(String botName) {
+		this.botName = botName;
+	}
+
+	public String getBotPassword() {
+		return botPassword;
+	}
+
+	public void setBotPassword(String botPassword) {
+		this.botPassword = botPassword;
+	}
+
+	public String getBotToken() {
+		return botToken;
+	}
+
+	public void setBotToken(String botToken) {
+		this.botToken = botToken;
+	}
+
+	public String getForkApiLink() {
+		return forkApiLink;
+	}
+
+	public void setForkApiLink(String forkApiLink) {
+		this.forkApiLink = forkApiLink;
+	}
+
+	public String getForkGitLink() {
+		return forkGitLink;
+	}
+
+	public void setForkGitLink(String forkGitLink) {
+		this.forkGitLink = forkGitLink;
 	}
 	
 }
