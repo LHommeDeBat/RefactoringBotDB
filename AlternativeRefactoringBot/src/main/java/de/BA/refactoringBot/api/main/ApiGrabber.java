@@ -12,6 +12,7 @@ import de.BA.refactoringBot.api.github.GithubDataGrabber;
 import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
 import de.BA.refactoringBot.controller.main.BotController;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
@@ -86,6 +87,29 @@ public class ApiGrabber {
 	}
 
 	/**
+	 * Diese Methode erstellt einen PullRequest auf Github, falls der Request,
+	 * welcher Refactored wurde, nicht dem Bot gehöhrt und er dementsprechend für
+	 * die Bearbeitung keine Rechte hat,´.
+	 * 
+	 * @param request
+	 * @param gitConfig
+	 * @throws RestClientException
+	 * @throws URISyntaxException
+	 */
+	public void makeCreateRequest(BotPullRequest request, GitConfiguration gitConfig)
+			throws RestClientException, URISyntaxException {
+		// Wähle passenden Service aus
+		switch (gitConfig.getRepoService()) {
+		case "github":
+			// Erstelle Request-Objekt
+			GithubCreateRequest createRequest = githubTranslator.makeCreateRequest(request, gitConfig);
+			// Erstelle Request auf Github
+			githubGrabber.createRequest(createRequest, gitConfig);
+			break;
+		}
+	}
+
+	/**
 	 * Schaue ob das Repository existiert und erstelle dafür eine Konfiguration.
 	 * 
 	 * @param repoName
@@ -110,9 +134,10 @@ public class ApiGrabber {
 			githubGrabber.checkRepository(repoName, repoOwner, repoService, botToken);
 
 			// Erstelle Konfiguration und den Fork
-			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken, repoService);
+			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
+					repoService);
 			githubGrabber.createFork(gitConfig);
-            return gitConfig;
+			return gitConfig;
 		default:
 			throw new OperationNotSupportedException();
 		}
@@ -132,6 +157,25 @@ public class ApiGrabber {
 		case "github":
 			// Versuche Repo zu löschen
 			githubGrabber.deleteRepository(gitConfig);
+			break;
+		}
+	}
+
+	/**
+	 * Diese Methode resettet den Fork bei jedem Refactoring um Merge-Konflikte zu
+	 * vermeiden.
+	 * 
+	 * @param gitConfig
+	 * @throws URISyntaxException
+	 */
+	public void resetFork(GitConfiguration gitConfig) throws URISyntaxException {
+		// Wähle passenden Service aus
+		switch (gitConfig.getRepoService()) {
+		case "github":
+			// Versuche Repo (Fork) zu löschen
+			githubGrabber.deleteRepository(gitConfig);
+			// Versuche neuen Fork zu erstellen
+			githubGrabber.createFork(gitConfig);
 			break;
 		}
 	}

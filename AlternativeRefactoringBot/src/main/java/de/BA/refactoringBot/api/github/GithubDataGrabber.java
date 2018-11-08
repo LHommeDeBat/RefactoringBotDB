@@ -23,6 +23,7 @@ import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.fork.GithubFork;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequest;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.EditComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
@@ -89,7 +90,7 @@ public class GithubDataGrabber {
 	 */
 	public GithubPullRequests getAllPullRequests(GitConfiguration gitConfig) throws URISyntaxException {
 		// Lese API-URI aus Konfiguration aus
-		URI configUri = new URI(gitConfig.getForkApiLink());
+		URI configUri = new URI(gitConfig.getRepoApiLink());
 
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
@@ -168,7 +169,7 @@ public class GithubDataGrabber {
 	 */
 	public void updatePullRequest(GithubUpdateRequest send, GitConfiguration gitConfig, Integer requestNumber)
 			throws URISyntaxException {
-		URI configUri = new URI(gitConfig.getForkApiLink());
+		URI configUri = new URI(gitConfig.getRepoApiLink());
 
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
@@ -205,7 +206,7 @@ public class GithubDataGrabber {
 	 */
 	public void editToBotComment(EditComment comment, GitConfiguration gitConfig, Integer commentNumber)
 			throws URISyntaxException {
-		URI configUri = new URI(gitConfig.getForkApiLink());
+		URI configUri = new URI(gitConfig.getRepoApiLink());
 
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
@@ -242,7 +243,7 @@ public class GithubDataGrabber {
 	 */
 	public void responseToBotComment(ReplyComment comment, GitConfiguration gitConfig, Integer requestNumber)
 			throws URISyntaxException {
-		URI configUri = new URI(gitConfig.getForkApiLink());
+		URI configUri = new URI(gitConfig.getRepoApiLink());
 
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
@@ -260,6 +261,30 @@ public class GithubDataGrabber {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Diese Methode erstellt einen PullRequest auf Github im ParentRepository
+	 * @param request
+	 * @param gitConfig
+	 * @throws URISyntaxException
+	 * @throws RestClientException
+	 */
+	public void createRequest(GithubCreateRequest request, GitConfiguration gitConfig) throws URISyntaxException, RestClientException {
+		URI configUri = new URI(gitConfig.getRepoApiLink());
+
+		// Baue URI
+		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
+				.host(configUri.getHost()).path(configUri.getPath() + "/pulls");
+		
+		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
+
+		URI pullsUri = apiUriBuilder.build().encode().toUri();
+
+		RestTemplate rest = new RestTemplate();
+
+		// Sende Anfrage an GitHub-API und hole Json
+		rest.exchange(pullsUri, HttpMethod.POST, new HttpEntity<GithubCreateRequest>(request), String.class).getBody();
 	}
 
 	/**

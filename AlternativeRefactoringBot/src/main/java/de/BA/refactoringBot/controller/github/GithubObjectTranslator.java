@@ -13,6 +13,7 @@ import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequest;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.EditComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
@@ -45,8 +46,8 @@ public class GithubObjectTranslator {
 	 * @param repoService
 	 * @return
 	 */
-	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername, String botPassword,
-			String botToken, String repoService) {
+	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername,
+			String botPassword, String botToken, String repoService) {
 		// Erstelle Konfiguration
 		GitConfiguration config = new GitConfiguration();
 
@@ -93,7 +94,7 @@ public class GithubObjectTranslator {
 			pullRequest.setBranchName(githubRequest.getHead().getRef());
 			pullRequest.setBranchCreator(githubRequest.getHead().getUser().getLogin());
 			pullRequest.setMergeBranchName(githubRequest.getBase().getRef());
-			pullRequest.setRepoName(githubRequest.getHead().getRepo().getFullName());
+			pullRequest.setRepoName(githubRequest.getBase().getRepo().getFullName());
 
 			// Versuche die Kommentare des PullRequests zu holen und zu übersetzen
 			try {
@@ -146,7 +147,8 @@ public class GithubObjectTranslator {
 
 	/**
 	 * Diese Methode erstellt einen Pull-Request im Github-Format damit der Bot
-	 * diesen Pull-Request nach erfolgreichem Refactoring erstellen kann.
+	 * diesen Pull-Request nach erfolgreichem Refactoring auf Github aktualisieren
+	 * kann.
 	 * 
 	 * @param refactoredRequest
 	 * @return sendRequest
@@ -163,12 +165,37 @@ public class GithubObjectTranslator {
 		// Fülle Request mit Daten
 		sendRequest.setTitle("Bot Pull-Request");
 		sendRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " aktualisiert.");
-		sendRequest.setBase(refactoredRequest.getMergeBranchName());
-		sendRequest.setState(refactoredRequest.getRequestStatus());
 		sendRequest.setMaintainer_can_modify(true);
 
 		// Gebe Request zurück
 		return sendRequest;
+	}
+
+	/**
+	 * Diese Methode erstellt einen Pull-Request im Github-Format damit der Bot
+	 * diesen Pull-Request auf Github erstellen kann.
+	 * 
+	 * @param gitConfig
+	 * @return createRequest
+	 */
+	public GithubCreateRequest makeCreateRequest(BotPullRequest refactoredRequest, GitConfiguration gitConfig) {
+		// Erstelle Request
+		GithubCreateRequest createRequest = new GithubCreateRequest();
+
+		// Erstelle heutiges Datum
+		SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
+		Date now = new Date();
+		String date = sdf.format(now);
+
+		// Fülle Request mit Daten
+		createRequest.setTitle("Bot Pull-Request Refactoring für PullRequest #" + refactoredRequest.getRequestNumber());
+		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " erstellt.");
+		createRequest.setHead(gitConfig.getBotName() + ":" + refactoredRequest.getBranchName());
+		createRequest.setBase(refactoredRequest.getBranchName());
+		createRequest.setMaintainer_can_modify(true);
+
+		// Gebe Request zurück
+		return createRequest;
 	}
 
 	/**

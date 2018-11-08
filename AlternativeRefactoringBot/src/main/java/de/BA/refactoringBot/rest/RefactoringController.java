@@ -68,6 +68,8 @@ public class RefactoringController {
 		// Initiiere Objekt
 		BotPullRequests allRequests = null;
 		try {
+			// Resette/Synchronisiere Fork mit Parent um Merge-Konflikte zu vermeiden
+			grabber.resetFork(gitConfig.get());
 			// Hole Requests mit Kommentaren vom Filehoster im Bot-Format
 			allRequests = grabber.getRequestsWithComments(gitConfig.get());
 		} catch (URISyntaxException e1) {
@@ -89,15 +91,20 @@ public class RefactoringController {
 						dataGetter.checkoutBranch(request.getBranchName());
 
 						// TODO: Später durch Refactoring ersetzen - Erstelle File
-						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text6.txt");
+						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text15.txt");
 						f.getParentFile().mkdirs();
 						f.createNewFile();
 
 						// Pushe Änderungen
 						dataGetter.pushChanges(gitConfig.get());
 
-						// Aktuallisiere Pullrequest und Kommentar + Antworte
-						grabber.makeUpdateRequest(request, comment, gitConfig.get());
+						// Aktuallisiere Pullrequest und Kommentar + Antworte (falls Bot-Request)
+						if (request.getCreatorName().equals(gitConfig.get().getBotName())) {
+							grabber.makeUpdateRequest(request, comment, gitConfig.get());
+						} else {
+							grabber.makeCreateRequest(request, gitConfig.get());
+						}
+
 					} catch (GitAPIException | IOException e) {
 						e.printStackTrace();
 					} catch (URISyntaxException e) {
