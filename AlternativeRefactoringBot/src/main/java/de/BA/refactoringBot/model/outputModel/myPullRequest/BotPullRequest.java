@@ -3,9 +3,9 @@ package de.BA.refactoringBot.model.outputModel.myPullRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.MyPullRequestComment;
+import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 
-public class MyPullRequest {
+public class BotPullRequest {
 
 	private String requestName;
 	private String requestDescription;
@@ -18,7 +18,7 @@ public class MyPullRequest {
 	private String branchCreator;
 	private String mergeBranchName;
 	private String repoName;
-	private List<MyPullRequestComment> allComments = new ArrayList<MyPullRequestComment>(); 
+	private List<BotPullRequestComment> allComments = new ArrayList<BotPullRequestComment>(); 
 	
 	public String getRequestName() {
 		return requestName;
@@ -100,11 +100,11 @@ public class MyPullRequest {
 		this.requestStatus = requestStatus;
 	}
 
-	public List<MyPullRequestComment> getAllComments() {
+	public List<BotPullRequestComment> getAllComments() {
 		return allComments;
 	}
 
-	public void setAllComments(List<MyPullRequestComment> allComments) {
+	public void setAllComments(List<BotPullRequestComment> allComments) {
 		this.allComments = allComments;
 	}
 

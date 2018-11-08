@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,14 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.fork.GithubFork;
-import de.BA.refactoringBot.model.githubModels.pullRequest.GithubSendPullRequest;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequest;
-import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequests;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.EditComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComments;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.ReplyComment;
-import de.BA.refactoringBot.model.githubModels.repository.Repository;
+import de.BA.refactoringBot.model.githubModels.repository.GithubRepository;
 
 /**
  * Diese Klasse holt verschiedenste Daten von einer Git-API. Aktuell wird nur
@@ -57,7 +58,8 @@ public class GithubDataGrabber {
 	 * @param repoService
 	 * @return {Repository-File}
 	 */
-	public Repository checkRepository(String repoName, String repoOwner, String repoService, String botToken) {
+	public GithubRepository checkRepository(String repoName, String repoOwner, String repoService, String botToken)
+			throws RestClientException {
 		// Baue URL
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
 				.path("/repos/" + repoOwner + "/" + repoName);
@@ -74,11 +76,7 @@ public class GithubDataGrabber {
 		HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 
 		// Sende Anfrage an GitHub-API und hole Json
-		try {
-			return rest.exchange(githubURI, HttpMethod.GET, entity, Repository.class).getBody();
-		} catch (Exception e) {
-			return null;
-		}
+		return rest.exchange(githubURI, HttpMethod.GET, entity, GithubRepository.class).getBody();
 
 	}
 
@@ -89,7 +87,7 @@ public class GithubDataGrabber {
 	 * @return allRequests
 	 * @throws URISyntaxException
 	 */
-	public PullRequests getAllPullRequests(GitConfiguration gitConfig) throws URISyntaxException {
+	public GithubPullRequests getAllPullRequests(GitConfiguration gitConfig) throws URISyntaxException {
 		// Lese API-URI aus Konfiguration aus
 		URI configUri = new URI(gitConfig.getForkApiLink());
 
@@ -110,7 +108,7 @@ public class GithubDataGrabber {
 		String json = rest.exchange(pullsUri, HttpMethod.GET, entity, String.class).getBody();
 
 		// Erstelle Objekt für Ausgabe
-		PullRequests allRequests = new PullRequests();
+		GithubPullRequests allRequests = new GithubPullRequests();
 
 		// Versuche JSON in Objekte umzuwandeln
 		try {
@@ -168,7 +166,7 @@ public class GithubDataGrabber {
 	 * @param gitConfig
 	 * @throws URISyntaxException
 	 */
-	public void updatePullRequest(GithubSendPullRequest send, GitConfiguration gitConfig, Integer requestNumber)
+	public void updatePullRequest(GithubUpdateRequest send, GitConfiguration gitConfig, Integer requestNumber)
 			throws URISyntaxException {
 		URI configUri = new URI(gitConfig.getForkApiLink());
 
@@ -191,7 +189,7 @@ public class GithubDataGrabber {
 
 		// Sende Anfrage an GitHub-API und hole Json
 		try {
-			rest.exchange(pullsUri, HttpMethod.PATCH, new HttpEntity<GithubSendPullRequest>(send), String.class);
+			rest.exchange(pullsUri, HttpMethod.PATCH, new HttpEntity<GithubUpdateRequest>(send), String.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -272,7 +270,7 @@ public class GithubDataGrabber {
 	 * @return
 	 * @throws URISyntaxException
 	 */
-	public GithubFork createFork(GitConfiguration gitConfig) throws URISyntaxException {
+	public GithubFork createFork(GitConfiguration gitConfig) throws URISyntaxException, RestClientException {
 		URI configUri = new URI(gitConfig.getForkApiLink());
 
 		// Baue URI
@@ -282,16 +280,14 @@ public class GithubDataGrabber {
 		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
 
 		URI forksUri = apiUriBuilder.build().encode().toUri();
+		
+		System.out.println(forksUri.toString());
+		System.out.println(gitConfig.getBotToken());
 
 		RestTemplate rest = new RestTemplate();
 
 		// Sende Anfrage an GitHub-API und hole Json
-		try {
-			return rest.exchange(forksUri, HttpMethod.POST, null, GithubFork.class).getBody();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+		return rest.exchange(forksUri, HttpMethod.POST, null, GithubFork.class).getBody();
 	}
 
 	/**
@@ -299,7 +295,7 @@ public class GithubDataGrabber {
 	 * Konfiguration gelöscht wurde.
 	 * 
 	 * @param gitConfiguration
-	 * @throws URISyntaxException 
+	 * @throws URISyntaxException
 	 */
 	public void deleteRepository(GitConfiguration gitConfig) throws URISyntaxException {
 		URI configUri = new URI(gitConfig.getForkApiLink());

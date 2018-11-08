@@ -1,4 +1,4 @@
-package de.BA.refactoringBot.controller;
+package de.BA.refactoringBot.controller.main;
 
 import java.io.File;
 import java.io.IOException;

@@ -14,17 +14,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import de.BA.refactoringBot.api.GithubDataGrabber;
+import de.BA.refactoringBot.api.ApiGrabber;
 import de.BA.refactoringBot.configuration.BotConfiguration;
-import de.BA.refactoringBot.controller.GitController;
-import de.BA.refactoringBot.controller.GithubObjectTranslator;
+import de.BA.refactoringBot.controller.main.BotController;
+import de.BA.refactoringBot.controller.main.GitController;
 import de.BA.refactoringBot.model.configuration.ConfigurationRepository;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
-import de.BA.refactoringBot.model.githubModels.pullRequest.GithubSendPullRequest;
-import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequests;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.MyPullRequest;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.MyPullRequests;
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.MyPullRequestComment;
+import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
+import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
+import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 import io.swagger.annotations.ApiOperation;
 
 /**
@@ -39,15 +37,15 @@ import io.swagger.annotations.ApiOperation;
 public class RefactoringController {
 
 	@Autowired
-	GithubDataGrabber grabber;
-	@Autowired
-	GithubObjectTranslator translator;
+	ApiGrabber grabber;
 	@Autowired
 	GitController dataGetter;
 	@Autowired
 	ConfigurationRepository configRepo;
 	@Autowired
 	BotConfiguration botConfig;
+	@Autowired
+	BotController botController;
 
 	/**
 	 * Diese Methode testet die GitHub API und einige Bot-Funktionen.
@@ -67,24 +65,22 @@ public class RefactoringController {
 					HttpStatus.NOT_FOUND);
 		}
 
-		// Hole PullRequests von GitHub
-		PullRequests response = null;
+		// Initiiere Objekt
+		BotPullRequests allRequests = null;
 		try {
-			response = grabber.getAllPullRequests(gitConfig.get());
+			// Hole Requests mit Kommentaren vom Filehoster im Bot-Format
+			allRequests = grabber.getRequestsWithComments(gitConfig.get());
 		} catch (URISyntaxException e1) {
 			return new ResponseEntity<String>("Etwas ist mit den URLs schiefgelaufen!",
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		// Übersetze GitHub-Objekt in Eigenes
-		MyPullRequests allRequests = translator.translateRequests(response, gitConfig.get());
-
 		// Gehe alle PullRequests durch
-		for (MyPullRequest request : allRequests.getAllPullRequests()) {
+		for (BotPullRequest request : allRequests.getAllPullRequests()) {
 			// Gehe alle Kommentare eines Requests durch
-			for (MyPullRequestComment comment : request.getAllComments()) {
+			for (BotPullRequestComment comment : request.getAllComments()) {
 				// Falls Kommentar für Bot bestimmt
-				if (translator.checkIfCommentForBot(comment)) {
+				if (botController.checkIfCommentForBot(comment)) {
 					// Versuche zu Pullen
 					try {
 						// Pulle Repo zum Arbeiten
@@ -100,16 +96,8 @@ public class RefactoringController {
 						// Pushe Änderungen
 						dataGetter.pushChanges(gitConfig.get());
 
-						// Erstelle Request-Objekt zum Senden
-						GithubSendPullRequest sendRequest = translator.createSendRequest(request, gitConfig.get());
-						// Aktualisiere Pull-Request auf Github
-						grabber.updatePullRequest(sendRequest, gitConfig.get(), request.getRequestNumber());
-						// Bearbeite Kommentar
-						grabber.editToBotComment(translator.editComment(comment), gitConfig.get(),
-								comment.getCommentID());
-						// Antworte auf Kommentar
-						grabber.responseToBotComment(translator.createReplyComment(comment, gitConfig.get()), gitConfig.get(),
-								request.getRequestNumber());
+						// Aktuallisiere Pullrequest und Kommentar + Antworte
+						grabber.makeUpdateRequest(request, comment, gitConfig.get());
 					} catch (GitAPIException | IOException e) {
 						e.printStackTrace();
 					} catch (URISyntaxException e) {
@@ -120,6 +108,6 @@ public class RefactoringController {
 		}
 
 		// Gebe übersetzte Requests zurück
-		return new ResponseEntity<MyPullRequests>(allRequests, HttpStatus.OK);
+		return new ResponseEntity<BotPullRequests>(allRequests, HttpStatus.OK);
 	}
 }

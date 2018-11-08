@@ -1,4 +1,4 @@
-package de.BA.refactoringBot.controller;
+package de.BA.refactoringBot.controller.github;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,18 +11,18 @@ import org.springframework.stereotype.Component;
 import de.BA.refactoringBot.api.GithubDataGrabber;
 import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
-import de.BA.refactoringBot.model.githubModels.pullRequest.GithubSendPullRequest;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequest;
-import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequests;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.EditComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComments;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.ReplyComment;
-import de.BA.refactoringBot.model.githubModels.repository.Repository;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.MyPullRequest;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.MyPullRequests;
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.MyPullRequestComment;
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.MyPullRequestComments;
+import de.BA.refactoringBot.model.githubModels.repository.GithubRepository;
+import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
+import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
+import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComments;
 
 /**
  * Diese Klasse ist dafür zuständig, GitHub Objekte in eigene Objekte
@@ -39,8 +39,6 @@ public class GithubObjectTranslator {
 	@Autowired
 	BotConfiguration botConfig;
 
-	// ALTE METHODEN
-
 	/**
 	 * Diese Methode ertellt eine Konfiguration eines Repos.
 	 * 
@@ -48,7 +46,8 @@ public class GithubObjectTranslator {
 	 * @param repoService
 	 * @return
 	 */
-	public GitConfiguration createConfiguration(Repository repo, String repoService) {
+	public GitConfiguration createConfiguration(GithubRepository repo, String botUsername, String botPassword,
+			String botToken, String repoService) {
 		// Erstelle Konfiguration
 		GitConfiguration config = new GitConfiguration();
 
@@ -58,26 +57,10 @@ public class GithubObjectTranslator {
 		config.setRepoName(repo.getName());
 		config.setRepoOwner(repo.getOwner().getLogin());
 		config.setRepoService(repoService.toLowerCase());
-
-		// Gebe Konfiguration zurück
-		return config;
-	}
-
-	/**
-	 * Diese Methode aktualisiert die Konfiguration mit den Eigenschaften des
-	 * erstellten Forks bei der Erstellung einer Konfiguration.
-	 * 
-	 * @param config
-	 * @return config
-	 */
-	public GitConfiguration updateConfiguration(GitConfiguration config, String botUsername, String botPassword,
-			String botToken) {
-		// Aktualisiere fehlende Daten
 		config.setBotName(botUsername);
 		config.setBotPassword(botPassword);
 		config.setBotToken(botToken);
-		config.setForkApiLink("https://api.github.com/repos/" + botUsername + "/" + config.getRepoName());
-		config.setForkGitLink("https://github.com/" + botUsername + "/" + config.getRepoName() + ".git");
+
 		// Gebe Konfiguration zurück
 		return config;
 	}
@@ -89,14 +72,14 @@ public class GithubObjectTranslator {
 	 * @param githubRequests
 	 * @return translatedRequests
 	 */
-	public MyPullRequests translateRequests(PullRequests githubRequests, GitConfiguration gitConfig) {
+	public BotPullRequests translateRequests(GithubPullRequests githubRequests, GitConfiguration gitConfig) {
 		// Erstelle Liste von übersetzten Objekten
-		MyPullRequests translatedRequests = new MyPullRequests();
+		BotPullRequests translatedRequests = new BotPullRequests();
 
 		// Gehe alle Github-Requests durch
 		for (PullRequest githubRequest : githubRequests.getAllPullRequests()) {
 			// Erstelle für jeden ein PullRequest
-			MyPullRequest pullRequest = new MyPullRequest();
+			BotPullRequest pullRequest = new BotPullRequest();
 
 			// Fülle es mit wichtigsten Daten
 			pullRequest.setRequestName(githubRequest.getTitle());
@@ -115,7 +98,7 @@ public class GithubObjectTranslator {
 			try {
 				URI commentUri = new URI(githubRequest.getReviewCommentsUrl());
 				PullRequestComments githubComments = grabber.getAllPullRequestComments(commentUri, gitConfig);
-				MyPullRequestComments comments = translatePullRequestComments(githubComments);
+				BotPullRequestComments comments = translatePullRequestComments(githubComments);
 				pullRequest.setAllComments(comments.getComments());
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
@@ -136,14 +119,14 @@ public class GithubObjectTranslator {
 	 * @param githubComments
 	 * @return translatedComments
 	 */
-	public MyPullRequestComments translatePullRequestComments(PullRequestComments githubComments) {
+	public BotPullRequestComments translatePullRequestComments(PullRequestComments githubComments) {
 		// Erstelle Ausgabeliste
-		MyPullRequestComments translatedComments = new MyPullRequestComments();
+		BotPullRequestComments translatedComments = new BotPullRequestComments();
 
 		// Gehe alle GitHub-Kommentare durch
 		for (PullRequestComment githubComment : githubComments.getComments()) {
 			// Erstelle neuen Kommentar mit eigenem Model
-			MyPullRequestComment translatedComment = new MyPullRequestComment();
+			BotPullRequestComment translatedComment = new BotPullRequestComment();
 
 			// Fülle eigenes Model mit Daten
 			translatedComment.setCommentID(githubComment.getId());
@@ -167,9 +150,9 @@ public class GithubObjectTranslator {
 	 * @param refactoredRequest
 	 * @return sendRequest
 	 */
-	public GithubSendPullRequest createSendRequest(MyPullRequest refactoredRequest, GitConfiguration gitConfig) {
+	public GithubUpdateRequest makeUpdateRequest(BotPullRequest refactoredRequest, GitConfiguration gitConfig) {
 		// Erstelle Request
-		GithubSendPullRequest sendRequest = new GithubSendPullRequest();
+		GithubUpdateRequest sendRequest = new GithubUpdateRequest();
 
 		// Erstelle heutiges Datum
 		SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
@@ -225,7 +208,7 @@ public class GithubObjectTranslator {
 	 * @param replyTo
 	 * @return comment
 	 */
-	public ReplyComment createReplyComment(MyPullRequestComment replyTo, GitConfiguration gitConfig) {
+	public ReplyComment createReplyComment(BotPullRequestComment replyTo, GitConfiguration gitConfig) {
 		// Erstelle Kommentar
 		ReplyComment comment = new ReplyComment();
 		// Fülle mit Daten
@@ -251,7 +234,7 @@ public class GithubObjectTranslator {
 	 * @param toEdit
 	 * @return
 	 */
-	public EditComment editComment(MyPullRequestComment toEdit) {
+	public EditComment editComment(BotPullRequestComment toEdit) {
 		// Erstelle EditComment
 		EditComment comment = new EditComment();
 
@@ -261,22 +244,5 @@ public class GithubObjectTranslator {
 
 		// Gebe Kommentar zurück
 		return comment;
-	}
-
-	/**
-	 * Diese Methode schaut ob ein Kommentar für den BOT bestimmt ist.
-	 * 
-	 * @param comment
-	 * @return boolean
-	 */
-	public boolean checkIfCommentForBot(MyPullRequestComment comment) {
-		// Splitte Kommentar an den Leerzeichen
-		String[] splitedComment = comment.getCommentBody().split(" ");
-		// Falls erstes Element = BOT -> Kommentar an BOT gerichtet
-		if (splitedComment[0].equals("BOT")) {
-			return true;
-		} else {
-			return false;
-		}
 	}
 }

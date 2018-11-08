@@ -3,6 +3,8 @@ package de.BA.refactoringBot.rest;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
+import javax.naming.OperationNotSupportedException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,13 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClientException;
 
-import de.BA.refactoringBot.api.GithubDataGrabber;
-import de.BA.refactoringBot.controller.GithubObjectTranslator;
+import de.BA.refactoringBot.api.ApiGrabber;
+import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
 import de.BA.refactoringBot.model.configuration.ConfigurationRepository;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
-import de.BA.refactoringBot.model.githubModels.fork.GithubFork;
-import de.BA.refactoringBot.model.githubModels.repository.Repository;
 import io.swagger.annotations.ApiOperation;
 
 /**
@@ -33,7 +34,7 @@ public class ConfigurationController {
 	@Autowired
 	ConfigurationRepository repo;
 	@Autowired
-	GithubDataGrabber grabber;
+	ApiGrabber grabber;
 	@Autowired
 	GithubObjectTranslator translator;
 
@@ -54,12 +55,6 @@ public class ConfigurationController {
 			@RequestParam(value = "botUsername", required = true, defaultValue = "LHommeDeBot") String botUsername,
 			@RequestParam(value = "botPassword", required = true, defaultValue = "Botboy55") String botPassword,
 			@RequestParam(value = "botToken", required = true, defaultValue = "Token hier eingeben") String botToken) {
-
-		// Akzeptiere vorerst nur Github
-		if (!repoService.toLowerCase().equals("github")) {
-			return new ResponseEntity<String>("Aktuell wird nur Github unterstützt!", HttpStatus.NOT_ACCEPTABLE);
-		}
-
 		// Schaue ob Repository schon existiert
 		Optional<GitConfiguration> existsConfig = repo.getConfigByName(repoName, repoOwner);
 		// Falls existiert
@@ -68,31 +63,22 @@ public class ConfigurationController {
 					HttpStatus.CONFLICT);
 		}
 
-		// Hole Repo-Daten (aktuell nur Github möglich)
-		Repository gitRepo = grabber.checkRepository(repoName, repoOwner, repoService, botToken);
-
-		// Falls API nix liefert
-		if (gitRepo == null) {
-			return new ResponseEntity<String>("Angegebenes Repo existiert bei " + repoService + " nicht",
-					HttpStatus.BAD_REQUEST);
-		}
-
-		// Baue Konfiguration aus dem Repo-Daten
-		GitConfiguration config = translator.createConfiguration(gitRepo, repoService);
-
-		// Speichere Konfiguration in DB
-		GitConfiguration savedConfig = repo.save(config);
-
 		try {
-			// Erstelle Fork und passe Konfigurationsdatei an
-			GithubFork fork = grabber.createFork(savedConfig);
-			savedConfig = translator.updateConfiguration(savedConfig, botUsername, botPassword, botToken);
-			repo.save(savedConfig);
+			// Baue Konfiguration aus dem Repo-Daten
+			GitConfiguration config = grabber.createConfigurationForRepo(repoName, repoOwner, repoService, botUsername, botPassword, botToken);
+			// Speichere Konfiguration in DB
+			repo.save(config);
 			// Gebe Feedback an Nutzer zurück
-			return new ResponseEntity<GithubFork>(fork, HttpStatus.OK);
+			return new ResponseEntity<GitConfiguration>(config, HttpStatus.CREATED);
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
-			return new ResponseEntity<String>("Fork konnte auf Github nicht erstellt werden!", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<String>("Ungültige URI!", HttpStatus.BAD_REQUEST);
+		} catch (RestClientException r) {
+			r.printStackTrace();
+			return new ResponseEntity<String>("Fehler mit der Verbindung zum angegebenen Repository!", HttpStatus.SERVICE_UNAVAILABLE);
+		} catch (OperationNotSupportedException e) {
+			e.printStackTrace();
+			return new ResponseEntity<String>("Der Filehoster " + repoService + " wird nicht unterstützt!", HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -112,7 +98,7 @@ public class ConfigurationController {
 			@RequestParam(value = "botName", required = true, defaultValue = "LHommeDeBot") String botName,
 			@RequestParam(value = "repoService", required = true, defaultValue = "Github") String repoService,
 			@RequestParam(value = "repoAdminToken", required = true, defaultValue = "Token hier Eingaben") String repoAdminToken) {
-		// Schaue ob Repository schon existiert
+		// Schaue ob Repository existiert
 		Optional<GitConfiguration> existsConfig = repo.getConfigByFork(repoName, botName);
 		// Falls existiert
 		if (existsConfig.isPresent()) {

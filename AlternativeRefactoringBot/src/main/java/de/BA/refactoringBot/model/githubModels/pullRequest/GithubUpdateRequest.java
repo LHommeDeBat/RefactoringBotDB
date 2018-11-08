@@ -1,6 +1,6 @@
 package de.BA.refactoringBot.model.githubModels.pullRequest;
 
-public class GithubSendPullRequest {
+public class GithubUpdateRequest {
 
 	private String title;
 	private String state;
