@@ -271,7 +271,7 @@ public class GithubDataGrabber {
 	 * @throws URISyntaxException
 	 */
 	public GithubFork createFork(GitConfiguration gitConfig) throws URISyntaxException, RestClientException {
-		URI configUri = new URI(gitConfig.getForkApiLink());
+		URI configUri = new URI(gitConfig.getRepoApiLink());
 
 		// Baue URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
@@ -280,9 +280,6 @@ public class GithubDataGrabber {
 		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
 
 		URI forksUri = apiUriBuilder.build().encode().toUri();
-		
-		System.out.println(forksUri.toString());
-		System.out.println(gitConfig.getBotToken());
 
 		RestTemplate rest = new RestTemplate();
 

@@ -13,7 +13,6 @@ import de.BA.refactoringBot.controller.main.BotController;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
-import de.BA.refactoringBot.model.githubModels.repository.GithubRepository;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
@@ -107,12 +106,10 @@ public class ApiGrabber {
 		switch (repoService.toLowerCase()) {
 		case "github":
 			// Versuche Repo zu holen
-			GithubRepository gitRepo = githubGrabber.checkRepository(repoName, repoOwner, repoService, botToken);
+			githubGrabber.checkRepository(repoName, repoOwner, repoService, botToken);
 
 			// Erstelle Konfiguration und den Fork
-			gitConfig = githubTranslator.createConfiguration(gitRepo, botUsername, botPassword, botToken, repoService);
-			gitConfig = botController.updateConfiguration(gitConfig);
-			System.out.println(gitConfig.getForkApiLink());
+			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken, repoService);
 			githubGrabber.createFork(gitConfig);
             return gitConfig;
 		default:

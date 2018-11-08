@@ -18,7 +18,6 @@ import de.BA.refactoringBot.model.githubModels.pullRequestComment.EditComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComments;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.ReplyComment;
-import de.BA.refactoringBot.model.githubModels.repository.GithubRepository;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
@@ -46,16 +45,18 @@ public class GithubObjectTranslator {
 	 * @param repoService
 	 * @return
 	 */
-	public GitConfiguration createConfiguration(GithubRepository repo, String botUsername, String botPassword,
+	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername, String botPassword,
 			String botToken, String repoService) {
 		// Erstelle Konfiguration
 		GitConfiguration config = new GitConfiguration();
 
 		// Erstelle ApiLink (aktuell nur Github)
-		config.setRepoApiLink("https://api.github.com/repos/" + repo.getFullName());
-		config.setRepoGitLink("https://github.com/" + repo.getFullName() + ".git");
-		config.setRepoName(repo.getName());
-		config.setRepoOwner(repo.getOwner().getLogin());
+		config.setRepoApiLink("https://api.github.com/repos/" + repoOwner + "/" + repoName);
+		config.setRepoGitLink("https://github.com/" + repoOwner + "/" + repoName + ".git");
+		config.setForkApiLink("https://api.github.com/repos/" + botUsername + "/" + repoName);
+		config.setForkGitLink("https://github.com/" + botUsername + "/" + repoName + ".git");
+		config.setRepoName(repoName);
+		config.setRepoOwner(repoOwner);
 		config.setRepoService(repoService.toLowerCase());
 		config.setBotName(botUsername);
 		config.setBotPassword(botPassword);
