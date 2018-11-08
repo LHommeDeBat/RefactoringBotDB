@@ -1,4 +1,4 @@
-package de.BA.refactoringBot.api;
+package de.BA.refactoringBot.api.github;
 
 import java.io.IOException;
 import java.net.URI;

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 
-import de.BA.refactoringBot.api.ApiGrabber;
+import de.BA.refactoringBot.api.main.ApiGrabber;
 import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
 import de.BA.refactoringBot.model.configuration.ConfigurationRepository;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
@@ -77,8 +77,7 @@ public class ConfigurationController {
 			r.printStackTrace();
 			return new ResponseEntity<String>("Fehler mit der Verbindung zum angegebenen Repository!", HttpStatus.SERVICE_UNAVAILABLE);
 		} catch (OperationNotSupportedException e) {
-			e.printStackTrace();
-			return new ResponseEntity<String>("Der Filehoster " + repoService + " wird nicht unterstützt!", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<String>("Der Filehoster '" + repoService + "' wird nicht unterstützt!", HttpStatus.BAD_REQUEST);
 		}
 	}
 

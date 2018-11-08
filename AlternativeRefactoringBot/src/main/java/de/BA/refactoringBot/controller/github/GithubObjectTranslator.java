@@ -8,7 +8,7 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import de.BA.refactoringBot.api.GithubDataGrabber;
+import de.BA.refactoringBot.api.github.GithubDataGrabber;
 import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;

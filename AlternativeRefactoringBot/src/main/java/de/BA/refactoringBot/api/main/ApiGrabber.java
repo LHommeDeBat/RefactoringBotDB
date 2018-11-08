@@ -1,4 +1,4 @@
-package de.BA.refactoringBot.api;
+package de.BA.refactoringBot.api.main;
 
 import java.net.URISyntaxException;
 
@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 
+import de.BA.refactoringBot.api.github.GithubDataGrabber;
 import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
 import de.BA.refactoringBot.controller.main.BotController;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import de.BA.refactoringBot.api.ApiGrabber;
+import de.BA.refactoringBot.api.main.ApiGrabber;
 import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.controller.main.BotController;
 import de.BA.refactoringBot.controller.main.GitController;
