@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *
  */
 @SpringBootApplication
-public class GitHubApiTestApplication {
+public class AlternativeRefactoringBotApplication {
 
 	/**
 	 * Diese Methode startet die Anwendung. Dabei wird auch Spring mit allen
@@ -19,6 +19,6 @@ public class GitHubApiTestApplication {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		SpringApplication.run(GitHubApiTestApplication.class, args);
+		SpringApplication.run(AlternativeRefactoringBotApplication.class, args);
 	}
 }
