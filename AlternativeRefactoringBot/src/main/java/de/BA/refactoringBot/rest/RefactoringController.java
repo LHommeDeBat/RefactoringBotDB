@@ -2,6 +2,7 @@ package de.BA.refactoringBot.rest;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -88,7 +89,10 @@ public class RefactoringController {
 						dataGetter.checkoutBranch(request.getBranchName());
 
 						// TODO: Später durch Refactoring ersetzen - Erstelle File
-						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text16.txt");
+						Random rand = new Random();
+						int randomFileNumber = rand.nextInt(100000) + 1;
+						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text"
+								+ randomFileNumber + ".txt");
 						f.getParentFile().mkdirs();
 						f.createNewFile();
 
