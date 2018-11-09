@@ -1,12 +1,9 @@
 package de.BA.refactoringBot.api.main;
 
-import java.net.URISyntaxException;
-
 import javax.naming.OperationNotSupportedException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
 
 import de.BA.refactoringBot.api.github.GithubDataGrabber;
 import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
@@ -41,9 +38,9 @@ public class ApiGrabber {
 	 * 
 	 * @param gitConfig
 	 * @return botRequests
-	 * @throws URISyntaxException
+	 * @throws Exception 
 	 */
-	public BotPullRequests getRequestsWithComments(GitConfiguration gitConfig) throws URISyntaxException {
+	public BotPullRequests getRequestsWithComments(GitConfiguration gitConfig) throws Exception {
 		// Erstelle Request-Objekt
 		BotPullRequests botRequests = null;
 
@@ -65,11 +62,11 @@ public class ApiGrabber {
 	 * 
 	 * @param request
 	 * @param gitConfig
-	 * @throws URISyntaxException
+	 * @throws Exception 
 	 * @throws OperationNotSupportedException
 	 */
 	public void makeUpdateRequest(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig)
-			throws URISyntaxException {
+			throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
@@ -93,11 +90,10 @@ public class ApiGrabber {
 	 * 
 	 * @param request
 	 * @param gitConfig
-	 * @throws RestClientException
-	 * @throws URISyntaxException
+	 * @throws Exception 
 	 */
 	public void makeCreateRequest(BotPullRequest request, GitConfiguration gitConfig)
-			throws RestClientException, URISyntaxException {
+			throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
@@ -117,12 +113,11 @@ public class ApiGrabber {
 	 * @param repoService
 	 * @param botToken
 	 * @return gitConfig
-	 * @throws URISyntaxException
-	 * @throws OperationNotSupportedException
+	 * @throws Exception 
 	 */
 	public GitConfiguration createConfigurationForRepo(String repoName, String repoOwner, String repoService,
 			String botUsername, String botPassword, String botToken)
-			throws RestClientException, URISyntaxException, OperationNotSupportedException {
+			throws Exception {
 
 		// Initiiere Konfiguration
 		GitConfiguration gitConfig = null;
@@ -130,8 +125,11 @@ public class ApiGrabber {
 		// Wähle passenden Service aus
 		switch (repoService.toLowerCase()) {
 		case "github":
-			// Versuche Repo zu holen
-			githubGrabber.checkRepository(repoName, repoOwner, repoService, botToken);
+			// Prüfe Repo-Existenz
+			githubGrabber.checkRepository(repoName, repoOwner);
+			
+			// Prüfe Bot-User-Existenz + Token gültigkeit
+			githubGrabber.checkGithubUser(botUsername, botToken);
 
 			// Erstelle Konfiguration und den Fork
 			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
@@ -139,7 +137,7 @@ public class ApiGrabber {
 			githubGrabber.createFork(gitConfig);
 			return gitConfig;
 		default:
-			throw new OperationNotSupportedException();
+			throw new Exception("Filehoster " + "'" + repoService + "' wird nicht unterstützt!");
 		}
 	}
 
@@ -148,10 +146,10 @@ public class ApiGrabber {
 	 * Konfiguration aus der DB des Serivices entfernt wurde.
 	 * 
 	 * @param gitConfig
-	 * @throws URISyntaxException
+	 * @throws Exception 
 	 * @throws OperationNotSupportedException
 	 */
-	public void deleteRepository(GitConfiguration gitConfig) throws URISyntaxException {
+	public void deleteRepository(GitConfiguration gitConfig) throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
@@ -166,9 +164,9 @@ public class ApiGrabber {
 	 * vermeiden.
 	 * 
 	 * @param gitConfig
-	 * @throws URISyntaxException
+	 * @throws Exception 
 	 */
-	public void resetFork(GitConfiguration gitConfig) throws URISyntaxException {
+	public void resetFork(GitConfiguration gitConfig) throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":

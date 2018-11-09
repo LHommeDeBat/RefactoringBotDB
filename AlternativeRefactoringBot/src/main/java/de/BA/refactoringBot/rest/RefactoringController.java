@@ -1,11 +1,8 @@
 package de.BA.refactoringBot.rest;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Optional;
 
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,9 +69,9 @@ public class RefactoringController {
 			grabber.resetFork(gitConfig.get());
 			// Hole Requests mit Kommentaren vom Filehoster im Bot-Format
 			allRequests = grabber.getRequestsWithComments(gitConfig.get());
-		} catch (URISyntaxException e1) {
-			return new ResponseEntity<String>("Etwas ist mit den URLs schiefgelaufen!",
-					HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		// Gehe alle PullRequests durch
@@ -104,11 +101,9 @@ public class RefactoringController {
 						} else {
 							grabber.makeCreateRequest(request, gitConfig.get());
 						}
-
-					} catch (GitAPIException | IOException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
-					} catch (URISyntaxException e) {
-						e.printStackTrace();
+						return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				}
 			}

@@ -1,9 +1,6 @@
 package de.BA.refactoringBot.rest;
 
-import java.net.URISyntaxException;
 import java.util.Optional;
-
-import javax.naming.OperationNotSupportedException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClientException;
 
 import de.BA.refactoringBot.api.main.ApiGrabber;
 import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
@@ -70,14 +66,9 @@ public class ConfigurationController {
 			repo.save(config);
 			// Gebe Feedback an Nutzer zurück
 			return new ResponseEntity<GitConfiguration>(config, HttpStatus.CREATED);
-		} catch (URISyntaxException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-			return new ResponseEntity<String>("Ungültige URI!", HttpStatus.BAD_REQUEST);
-		} catch (RestClientException r) {
-			r.printStackTrace();
-			return new ResponseEntity<String>("Fehler mit der Verbindung zum angegebenen Repository!", HttpStatus.SERVICE_UNAVAILABLE);
-		} catch (OperationNotSupportedException e) {
-			return new ResponseEntity<String>("Der Filehoster '" + repoService + "' wird nicht unterstützt!", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -105,9 +96,9 @@ public class ConfigurationController {
 				grabber.deleteRepository(existsConfig.get());
 				repo.delete(existsConfig.get());
 				return new ResponseEntity<String>("Konfiguration erfolgreich gelöscht!", HttpStatus.OK);
-			} catch (URISyntaxException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
-				return new ResponseEntity<String>("Konnte Fork-Repo nicht löschen!", HttpStatus.INTERNAL_SERVER_ERROR);
+				return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		} else {
 			return new ResponseEntity<String>("Kein Repository mit angegebenen Eigenschaften gefunden!",

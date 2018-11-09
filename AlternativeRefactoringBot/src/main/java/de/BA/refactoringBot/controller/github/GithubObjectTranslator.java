@@ -73,8 +73,10 @@ public class GithubObjectTranslator {
 	 * 
 	 * @param githubRequests
 	 * @return translatedRequests
+	 * @throws Exception
 	 */
-	public BotPullRequests translateRequests(GithubPullRequests githubRequests, GitConfiguration gitConfig) {
+	public BotPullRequests translateRequests(GithubPullRequests githubRequests, GitConfiguration gitConfig)
+			throws Exception {
 		// Erstelle Liste von übersetzten Objekten
 		BotPullRequests translatedRequests = new BotPullRequests();
 
@@ -96,15 +98,17 @@ public class GithubObjectTranslator {
 			pullRequest.setMergeBranchName(githubRequest.getBase().getRef());
 			pullRequest.setRepoName(githubRequest.getBase().getRepo().getFullName());
 
-			// Versuche die Kommentare des PullRequests zu holen und zu übersetzen
+			// Baue URI für die Kommentare des Pull-Requests
+			URI commentUri = null;
 			try {
-				URI commentUri = new URI(githubRequest.getReviewCommentsUrl());
-				PullRequestComments githubComments = grabber.getAllPullRequestComments(commentUri, gitConfig);
-				BotPullRequestComments comments = translatePullRequestComments(githubComments);
-				pullRequest.setAllComments(comments.getComments());
+				commentUri = new URI(githubRequest.getReviewCommentsUrl());
 			} catch (URISyntaxException e) {
-				e.printStackTrace();
+				throw new Exception("Konnte URI für Pull-Request Kommentare nicht bauen!");
 			}
+
+			PullRequestComments githubComments = grabber.getAllPullRequestComments(commentUri, gitConfig);
+			BotPullRequestComments comments = translatePullRequestComments(githubComments);
+			pullRequest.setAllComments(comments.getComments());
 
 			// Füge erstellten Request zur Liste hinzu
 			translatedRequests.addPullRequest(pullRequest);
