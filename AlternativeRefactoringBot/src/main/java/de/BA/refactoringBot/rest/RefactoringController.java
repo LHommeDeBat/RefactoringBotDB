@@ -124,7 +124,7 @@ public class RefactoringController {
 	@RequestMapping(value = "/refactorWithSonarCube/{configID}", method = RequestMethod.GET, produces = "application/json")
 	@ApiOperation(value = "Führt Refactoring anhand der SonarCube-Issues in einem Repository aus.")
 	public ResponseEntity<?> refactorWithSonarCube(@PathVariable Long configID) {
-		
+
 		// Hole Git-Konfiguration für Bot falls Existiert
 		Optional<GitConfiguration> gitConfig = configRepo.findById(configID);
 		// Falls nicht existiert
@@ -132,10 +132,20 @@ public class RefactoringController {
 			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",
 					HttpStatus.NOT_FOUND);
 		}
-		
+
+		try {
+			// Resette/Synchronisiere Fork mit Parent um Merge-Konflikte zu vermeiden
+			grabber.resetFork(gitConfig.get());
+			// Hole Requests vom Filehoster (und teste ob Limit erreicht)
+			grabber.getRequestsWithComments(gitConfig.get());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 		// Initiiere Datenobjekt für die SonarCubeIssues
 		SonarCubeIssues allIssues = null;
-		
+
 		try {
 			// Hole Issues von der SonarCube-API
 			allIssues = sonarCubeGrabber.getIssues(gitConfig.get().getSonarCubeProjectKey());
