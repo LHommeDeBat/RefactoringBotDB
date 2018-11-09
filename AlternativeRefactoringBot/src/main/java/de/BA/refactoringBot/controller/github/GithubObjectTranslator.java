@@ -45,10 +45,11 @@ public class GithubObjectTranslator {
 	 * @param repo
 	 * @param repoService
 	 * @param sonarCubeProjectKey 
+	 * @param maxAmountRequests 
 	 * @return
 	 */
 	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername,
-			String botPassword, String botToken, String repoService, String sonarCubeProjectKey) {
+			String botPassword, String botToken, String repoService, String sonarCubeProjectKey, Integer maxAmountRequests) {
 		// Erstelle Konfiguration
 		GitConfiguration config = new GitConfiguration();
 
@@ -63,6 +64,7 @@ public class GithubObjectTranslator {
 		config.setBotName(botUsername);
 		config.setBotPassword(botPassword);
 		config.setSonarCubeProjectKey(sonarCubeProjectKey);
+		config.setMaxAmountRequests(maxAmountRequests);
 		config.setBotToken(botToken);
 
 		// Gebe Konfiguration zurück

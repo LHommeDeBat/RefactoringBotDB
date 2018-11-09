@@ -2,6 +2,9 @@ package de.BA.refactoringBot.controller.main;
 
 import org.springframework.stereotype.Component;
 
+import de.BA.refactoringBot.model.configuration.GitConfiguration;
+import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
+import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 
 @Component
@@ -21,6 +24,33 @@ public class BotController {
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+	/**
+	 * Diese Methode checkt, ob die maximale Anzahl an offenen PullRequests des Bots
+	 * in dem entsprechenden Repository erreicht wurde.
+	 * 
+	 * @param requests
+	 * @param gitConfig
+	 * @throws Exception 
+	 */
+	public void checkAmountOfBotRequests(BotPullRequests requests, GitConfiguration gitConfig) throws Exception {
+
+		// Initiiere Zähler
+		int counter = 0;
+		// Gehe alle Requests durch
+		for (BotPullRequest request : requests.getAllPullRequests()) {
+			// Falls Request dem Bot gehört
+			if (request.getCreatorName().equals(gitConfig.getBotName())) {
+				counter++;
+			}
+		}
+
+		// Prüfe ob Maximum an Requests erreicht oder überschritten
+		if (counter >= gitConfig.getMaxAmountRequests()) {
+			throw new Exception("Maximale Anzahl an Requests erreicht bzw. überschritten." + "(Maximum = "
+					+ gitConfig.getMaxAmountRequests() + "; Aktuell = " + counter + " Requests des Bots offen)");
 		}
 	}
 }

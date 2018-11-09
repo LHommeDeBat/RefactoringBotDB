@@ -51,6 +51,8 @@ public class ApiGrabber {
 			GithubPullRequests githubRequests = githubGrabber.getAllPullRequests(gitConfig);
 			// Wandle Objekt in Bot-Objekt um
 			botRequests = githubTranslator.translateRequests(githubRequests, gitConfig);
+			// Checke ob Maximale Anzahl erreicht
+			botController.checkAmountOfBotRequests(botRequests, gitConfig);
 			break;
 		}
 		return botRequests;
@@ -112,11 +114,13 @@ public class ApiGrabber {
 	 * @param repoService
 	 * @param botToken
 	 * @param sonarCubeProjectKey
+	 * @param maxAmountRequests
 	 * @return gitConfig
 	 * @throws Exception
 	 */
 	public GitConfiguration createConfigurationForRepo(String repoName, String repoOwner, String repoService,
-			String botUsername, String botPassword, String botToken, String sonarCubeProjectKey) throws Exception {
+			String botUsername, String botPassword, String botToken, String sonarCubeProjectKey,
+			Integer maxAmountRequests) throws Exception {
 
 		// Initiiere Konfiguration
 		GitConfiguration gitConfig = null;
@@ -132,7 +136,7 @@ public class ApiGrabber {
 
 			// Erstelle Konfiguration und den Fork
 			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
-					repoService, sonarCubeProjectKey);
+					repoService, sonarCubeProjectKey, maxAmountRequests);
 			githubGrabber.createFork(gitConfig);
 			return gitConfig;
 		default:

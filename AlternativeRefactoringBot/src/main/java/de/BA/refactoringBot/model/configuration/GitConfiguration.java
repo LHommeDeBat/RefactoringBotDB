@@ -24,6 +24,7 @@ public class GitConfiguration {
 	private String forkApiLink;
 	private String forkGitLink;
 	private String sonarCubeProjectKey;
+	private Integer maxAmountRequests;
 	
 	public Long getId() {
 		return id;
@@ -115,6 +116,14 @@ public class GitConfiguration {
 
 	public void setSonarCubeProjectKey(String sonarCubeProjectKey) {
 		this.sonarCubeProjectKey = sonarCubeProjectKey;
+	}
+
+	public Integer getMaxAmountRequests() {
+		return maxAmountRequests;
+	}
+
+	public void setMaxAmountRequests(Integer maxAmountRequests) {
+		this.maxAmountRequests = maxAmountRequests;
 	}
 	
 }
