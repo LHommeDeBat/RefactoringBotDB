@@ -88,7 +88,7 @@ public class RefactoringController {
 						dataGetter.checkoutBranch(request.getBranchName());
 
 						// TODO: Später durch Refactoring ersetzen - Erstelle File
-						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text15.txt");
+						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text16.txt");
 						f.getParentFile().mkdirs();
 						f.createNewFile();
 
