@@ -33,8 +33,7 @@ import de.BA.refactoringBot.model.githubModels.repository.GithubRepository;
 import de.BA.refactoringBot.model.githubModels.user.GithubUser;
 
 /**
- * Diese Klasse holt verschiedenste Daten von einer Git-API. Aktuell wird nur
- * Github unterstützt,
+ * Diese Klasse holt verschiedenste Daten von der Github-API.
  * 
  * @author Stefan Basaric
  *

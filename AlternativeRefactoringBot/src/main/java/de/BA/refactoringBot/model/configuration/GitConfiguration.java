@@ -23,6 +23,7 @@ public class GitConfiguration {
 	private String botToken;
 	private String forkApiLink;
 	private String forkGitLink;
+	private String sonarCubeProjectKey;
 	
 	public Long getId() {
 		return id;
@@ -106,6 +107,14 @@ public class GitConfiguration {
 
 	public void setForkGitLink(String forkGitLink) {
 		this.forkGitLink = forkGitLink;
+	}
+
+	public String getSonarCubeProjectKey() {
+		return sonarCubeProjectKey;
+	}
+
+	public void setSonarCubeProjectKey(String sonarCubeProjectKey) {
+		this.sonarCubeProjectKey = sonarCubeProjectKey;
 	}
 	
 }

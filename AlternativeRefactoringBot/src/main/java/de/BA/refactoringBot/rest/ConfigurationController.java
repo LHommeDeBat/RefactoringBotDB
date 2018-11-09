@@ -50,6 +50,7 @@ public class ConfigurationController {
 			@RequestParam(value = "repoService", required = true, defaultValue = "Github") String repoService,
 			@RequestParam(value = "botUsername", required = true, defaultValue = "LHommeDeBot") String botUsername,
 			@RequestParam(value = "botPassword", required = true, defaultValue = "Botboy55") String botPassword,
+			@RequestParam(value = "sonarCubeProjectKey", required = true, defaultValue = "Test:Test:master") String sonarCubeProjectKey,
 			@RequestParam(value = "botToken", required = true, defaultValue = "Token hier eingeben") String botToken) {
 		// Schaue ob Repository schon existiert
 		Optional<GitConfiguration> existsConfig = repo.getConfigByName(repoName, repoOwner);
@@ -61,7 +62,8 @@ public class ConfigurationController {
 
 		try {
 			// Baue Konfiguration aus dem Repo-Daten
-			GitConfiguration config = grabber.createConfigurationForRepo(repoName, repoOwner, repoService, botUsername, botPassword, botToken);
+			GitConfiguration config = grabber.createConfigurationForRepo(repoName, repoOwner, repoService, botUsername,
+					botPassword, botToken, sonarCubeProjectKey);
 			// Speichere Konfiguration in DB
 			repo.save(config);
 			// Gebe Feedback an Nutzer zurück
@@ -87,7 +89,7 @@ public class ConfigurationController {
 			@RequestParam(value = "repoName", required = true, defaultValue = "TestPullRequest") String repoName,
 			@RequestParam(value = "botName", required = true, defaultValue = "LHommeDeBot") String botName,
 			@RequestParam(value = "repoService", required = true, defaultValue = "Github") String repoService,
-			@RequestParam(value = "repoAdminToken", required = true, defaultValue = "Token hier Eingaben") String repoAdminToken) {
+			@RequestParam(value = "botToken", required = true, defaultValue = "Token hier Eingaben") String botToken) {
 		// Schaue ob Repository existiert
 		Optional<GitConfiguration> existsConfig = repo.getConfigByFork(repoName, botName);
 		// Falls existiert

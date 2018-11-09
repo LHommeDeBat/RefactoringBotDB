@@ -38,7 +38,7 @@ public class ApiGrabber {
 	 * 
 	 * @param gitConfig
 	 * @return botRequests
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public BotPullRequests getRequestsWithComments(GitConfiguration gitConfig) throws Exception {
 		// Erstelle Request-Objekt
@@ -62,7 +62,7 @@ public class ApiGrabber {
 	 * 
 	 * @param request
 	 * @param gitConfig
-	 * @throws Exception 
+	 * @throws Exception
 	 * @throws OperationNotSupportedException
 	 */
 	public void makeUpdateRequest(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig)
@@ -90,10 +90,9 @@ public class ApiGrabber {
 	 * 
 	 * @param request
 	 * @param gitConfig
-	 * @throws Exception 
+	 * @throws Exception
 	 */
-	public void makeCreateRequest(BotPullRequest request, GitConfiguration gitConfig)
-			throws Exception {
+	public void makeCreateRequest(BotPullRequest request, GitConfiguration gitConfig) throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
@@ -112,12 +111,12 @@ public class ApiGrabber {
 	 * @param repoOwner
 	 * @param repoService
 	 * @param botToken
+	 * @param sonarCubeProjectKey
 	 * @return gitConfig
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public GitConfiguration createConfigurationForRepo(String repoName, String repoOwner, String repoService,
-			String botUsername, String botPassword, String botToken)
-			throws Exception {
+			String botUsername, String botPassword, String botToken, String sonarCubeProjectKey) throws Exception {
 
 		// Initiiere Konfiguration
 		GitConfiguration gitConfig = null;
@@ -127,13 +126,13 @@ public class ApiGrabber {
 		case "github":
 			// Prüfe Repo-Existenz
 			githubGrabber.checkRepository(repoName, repoOwner);
-			
+
 			// Prüfe Bot-User-Existenz + Token gültigkeit
 			githubGrabber.checkGithubUser(botUsername, botToken);
 
 			// Erstelle Konfiguration und den Fork
 			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
-					repoService);
+					repoService, sonarCubeProjectKey);
 			githubGrabber.createFork(gitConfig);
 			return gitConfig;
 		default:
@@ -146,7 +145,7 @@ public class ApiGrabber {
 	 * Konfiguration aus der DB des Serivices entfernt wurde.
 	 * 
 	 * @param gitConfig
-	 * @throws Exception 
+	 * @throws Exception
 	 * @throws OperationNotSupportedException
 	 */
 	public void deleteRepository(GitConfiguration gitConfig) throws Exception {
@@ -164,7 +163,7 @@ public class ApiGrabber {
 	 * vermeiden.
 	 * 
 	 * @param gitConfig
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public void resetFork(GitConfiguration gitConfig) throws Exception {
 		// Wähle passenden Service aus

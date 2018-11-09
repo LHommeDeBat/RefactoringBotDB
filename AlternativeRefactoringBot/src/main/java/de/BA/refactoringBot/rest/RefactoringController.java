@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.BA.refactoringBot.api.main.ApiGrabber;
+import de.BA.refactoringBot.api.sonarCube.SonarCubeDataGrabber;
 import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.controller.main.BotController;
 import de.BA.refactoringBot.controller.main.GitController;
@@ -21,6 +22,7 @@ import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.sonarQube.SonarCubeIssues;
 import io.swagger.annotations.ApiOperation;
 
 /**
@@ -37,6 +39,8 @@ public class RefactoringController {
 	@Autowired
 	ApiGrabber grabber;
 	@Autowired
+	SonarCubeDataGrabber sonarCubeGrabber;
+	@Autowired
 	GitController dataGetter;
 	@Autowired
 	ConfigurationRepository configRepo;
@@ -52,7 +56,7 @@ public class RefactoringController {
 	 * @return allRequests
 	 */
 	@RequestMapping(value = "/refactorWithComments/{configID}", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "Gibt Repoliste von Github zurück")
+	@ApiOperation(value = "Führt Refactoring anhand der Pull-Request-Kommentare in einem Repository aus.")
 	public ResponseEntity<?> refactorWithComments(@PathVariable Long configID) {
 
 		// Hole Git-Konfiguration für Bot falls Existiert
@@ -115,5 +119,30 @@ public class RefactoringController {
 
 		// Gebe übersetzte Requests zurück
 		return new ResponseEntity<BotPullRequests>(allRequests, HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/refactorWithSonarCube/{configID}", method = RequestMethod.GET, produces = "application/json")
+	@ApiOperation(value = "Führt Refactoring anhand der SonarCube-Issues in einem Repository aus.")
+	public ResponseEntity<?> refactorWithSonarCube(@PathVariable Long configID) {
+		
+		// Hole Git-Konfiguration für Bot falls Existiert
+		Optional<GitConfiguration> gitConfig = configRepo.findById(configID);
+		// Falls nicht existiert
+		if (!gitConfig.isPresent()) {
+			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",
+					HttpStatus.NOT_FOUND);
+		}
+		
+		// Initiiere Datenobjekt für die SonarCubeIssues
+		SonarCubeIssues allIssues = null;
+		
+		try {
+			// Hole Issues von der SonarCube-API
+			allIssues = sonarCubeGrabber.getIssues(gitConfig.get().getSonarCubeProjectKey());
+			return new ResponseEntity<SonarCubeIssues>(allIssues, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 }

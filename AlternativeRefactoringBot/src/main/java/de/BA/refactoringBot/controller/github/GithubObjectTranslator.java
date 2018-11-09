@@ -44,10 +44,11 @@ public class GithubObjectTranslator {
 	 * 
 	 * @param repo
 	 * @param repoService
+	 * @param sonarCubeProjectKey 
 	 * @return
 	 */
 	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername,
-			String botPassword, String botToken, String repoService) {
+			String botPassword, String botToken, String repoService, String sonarCubeProjectKey) {
 		// Erstelle Konfiguration
 		GitConfiguration config = new GitConfiguration();
 
@@ -61,6 +62,7 @@ public class GithubObjectTranslator {
 		config.setRepoService(repoService.toLowerCase());
 		config.setBotName(botUsername);
 		config.setBotPassword(botPassword);
+		config.setSonarCubeProjectKey(sonarCubeProjectKey);
 		config.setBotToken(botToken);
 
 		// Gebe Konfiguration zurück
