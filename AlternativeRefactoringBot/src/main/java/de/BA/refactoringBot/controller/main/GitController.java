@@ -77,14 +77,14 @@ public class GitController {
 	 * 
 	 * @throws Exception
 	 */
-	public void pushChanges(GitConfiguration gitConfig) throws Exception {
+	public void pushChanges(GitConfiguration gitConfig, String commitMessage) throws Exception {
 		try {
 			// Öffne Arbeitsverzeichnis
 			Git git = Git.open(new File(botConfig.getBotWorkingDirectory()));
 			// Führe 'git add .' aus
 			git.add().addFilepattern(".").call();
 			// Mache einen commit (Aktuell hardgecodete Nachricht)
-			git.commit().setMessage("Bot hat eine Textdatei hinzugefügt.").call();
+			git.commit().setMessage(commitMessage).call();
 			// Pushe mit Bot-Daten
 			git.push()
 					.setCredentialsProvider(

@@ -110,8 +110,8 @@ public class RefactoringController {
 						f.getParentFile().mkdirs();
 						f.createNewFile();
 
-						// Pushe Änderungen
-						dataGetter.pushChanges(gitConfig.get());
+						// Pushe Änderungen TODO: dynamische Commitnachricht
+						dataGetter.pushChanges(gitConfig.get(), "Bot hat eine Datei hinzugefügt");
 
 						// Aktuallisiere Pullrequest und Kommentar + Antworte (falls Bot-Request)
 						if (request.getCreatorName().equals(gitConfig.get().getBotName())) {
@@ -175,7 +175,7 @@ public class RefactoringController {
 				RefactoredIssue refactoredIssue = refactoring.pickRefactoring(issue, gitConfig.get());
 				
 				// Pushe Änderungen
-				dataGetter.pushChanges(gitConfig.get());
+				dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
 				
 				// Erstelle PullRequest
 				grabber.makeCreateRequestWithSonarQube(issue, gitConfig.get());
