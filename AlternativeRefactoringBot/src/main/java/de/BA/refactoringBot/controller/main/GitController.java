@@ -29,10 +29,9 @@ public class GitController {
 	 * Diese Methode Pullt das gewünschte Repository mittels einer URL.
 	 * 
 	 * @param repoURL
-	 * @throws Exception 
+	 * @throws Exception
 	 */
-	public void pullGithubRepo(String repoURL)
-			throws Exception {
+	public void pullGithubRepo(String repoURL) throws Exception {
 		try {
 			// Lösche zunächst den Arbeitsordner
 			FileUtils.deleteDirectory(new File(botConfig.getBotWorkingDirectory()));
@@ -54,19 +53,22 @@ public class GitController {
 	 * @throws Exception
 	 */
 	public void checkoutBranch(String branchName) throws Exception {
-		try {
-			// Öffne Arbeitsverzeichnis
-			Git git = Git.open(new File(botConfig.getBotWorkingDirectory()));
-			// Wechsle auf Branch des PullRequests
-			@SuppressWarnings("unused")
-			Ref ref = git.checkout().setCreateBranch(true).setName(branchName)
-					.setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).setStartPoint("origin/" + branchName)
-					.call();
-			// Pulle Daten
-			git.pull();
-			git.close();
-		} catch (Exception e) {
-			throw new Exception("Konnte kein Checkout vom Branch " + "'" + branchName + "' durchführen!");
+		// Branchwechsel nur wenn nicht 'master' da beim Clonen master geholt wird
+		if (branchName != "master") {
+			try {
+				// Öffne Arbeitsverzeichnis
+				Git git = Git.open(new File(botConfig.getBotWorkingDirectory()));
+				// Wechsle auf Branch des PullRequests
+				@SuppressWarnings("unused")
+				Ref ref = git.checkout().setCreateBranch(true).setName(branchName)
+						.setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+						.setStartPoint("origin/" + branchName).call();
+				// Pulle Daten
+				git.pull();
+				git.close();
+			} catch (Exception e) {
+				throw new Exception("Konnte kein Checkout vom Branch " + "'" + branchName + "' durchführen!");
+			}
 		}
 	}
 

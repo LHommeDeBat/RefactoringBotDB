@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class BotConfiguration {
 
 	private String botWorkingDirectory = "";
+	private String botRefactoringDirectory = "";
 
 	public String getBotWorkingDirectory() {
 		return botWorkingDirectory;
@@ -22,6 +23,14 @@ public class BotConfiguration {
 
 	public void setBotWorkingDirectory(String botWorkingDirectory) {
 		this.botWorkingDirectory = botWorkingDirectory;
+	}
+
+	public String getBotRefactoringDirectory() {
+		return botRefactoringDirectory;
+	}
+
+	public void setBotRefactoringDirectory(String botRefactoringDirectory) {
+		this.botRefactoringDirectory = botRefactoringDirectory;
 	}
 
 }

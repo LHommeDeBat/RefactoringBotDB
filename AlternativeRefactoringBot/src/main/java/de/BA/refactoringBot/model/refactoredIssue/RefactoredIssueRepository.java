@@ -6,6 +6,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
+/**
+ * Dieses Interface wird genutzt um mit der Datenbank zu kommunizieren. Dabei
+ * wird sowohl das vom Spring angebotene CRUD-Repository verwendet als auch
+ * klassische SQL-Queries.
+ * 
+ * @author Stefan Basaric
+ *
+ */
 @Transactional
 public interface RefactoredIssueRepository extends CrudRepository<RefactoredIssue, Long> {
 

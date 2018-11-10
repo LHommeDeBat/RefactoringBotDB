@@ -136,12 +136,13 @@ public class ApiGrabber {
 	 * @param botToken
 	 * @param sonarCubeProjectKey
 	 * @param maxAmountRequests
+	 * @param projectRootFolder 
 	 * @return gitConfig
 	 * @throws Exception
 	 */
 	public GitConfiguration createConfigurationForRepo(String repoName, String repoOwner, String repoService,
 			String botUsername, String botPassword, String botToken, String sonarCubeProjectKey,
-			Integer maxAmountRequests) throws Exception {
+			Integer maxAmountRequests, String projectRootFolder) throws Exception {
 
 		// Initiiere Konfiguration
 		GitConfiguration gitConfig = null;
@@ -157,7 +158,7 @@ public class ApiGrabber {
 
 			// Erstelle Konfiguration und den Fork
 			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
-					repoService, sonarCubeProjectKey, maxAmountRequests);
+					repoService, sonarCubeProjectKey, maxAmountRequests, projectRootFolder);
 			githubGrabber.createFork(gitConfig);
 			return gitConfig;
 		default:

@@ -19,7 +19,7 @@ public class RefactoredIssue {
 	private String repoService;
 	private String dateOfRefactoring;
 	private String sonarCubeProjectKey;
-	private String sonarCubeIssueKey;
+	private String sonarCubeIssueRule;
 	private String kindOfRefactoring;
 	private String commitMessage;
 	private String repoBranch;
@@ -68,12 +68,12 @@ public class RefactoredIssue {
 		this.sonarCubeProjectKey = sonarCubeProjectKey;
 	}
 	
-	public String getSonarCubeIssueKey() {
-		return sonarCubeIssueKey;
+	public String getSonarCubeIssueRule() {
+		return sonarCubeIssueRule;
 	}
 	
-	public void setSonarCubeIssueKey(String sonarCubeIssueKey) {
-		this.sonarCubeIssueKey = sonarCubeIssueKey;
+	public void setSonarCubeIssueRule(String sonarCubeIssueRule) {
+		this.sonarCubeIssueRule = sonarCubeIssueRule;
 	}
 	
 	public String getKindOfRefactoring() {

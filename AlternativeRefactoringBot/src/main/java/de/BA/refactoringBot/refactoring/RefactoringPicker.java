@@ -31,14 +31,14 @@ public class RefactoringPicker {
 	 * @throws Exception 
 	 */
 	public RefactoredIssue pickRefactoring(Issue issue, GitConfiguration gitConfig) throws Exception {
-
+	
 		// Wähle Refactoring nach SonarCube-Key
 		try {
-			switch (issue.getKey()) {
+			switch (issue.getRule()) {
 			case "squid:S1161":
 				return addOverride.performRefactoring(issue, gitConfig);
 			default:
-				throw new Exception("Refactoring wird nicht unterstützt " + issue.getKey());
+				return null;
 			}
 		} catch (Exception e) {
 			throw new Exception("Etwas ist beim Refactoring schiefgelaufen!");

@@ -174,15 +174,18 @@ public class RefactoringController {
 				// Führe Refactoring aus
 				RefactoredIssue refactoredIssue = refactoring.pickRefactoring(issue, gitConfig.get());
 				
-				// Pushe Änderungen
-				dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
-				
-				// Erstelle PullRequest
-				grabber.makeCreateRequestWithSonarQube(issue, gitConfig.get());
-				
-				// Speichere den RefactoredIssue in die DB
-				RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
-				allRefactoredIssues.add(savedIssue);
+				// Falls Refactoring für Issue existiert
+				if (refactoredIssue != null) {
+					// Pushe Änderungen
+					/*dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
+					
+					// Erstelle PullRequest
+					grabber.makeCreateRequestWithSonarQube(issue, gitConfig.get()); */
+					
+					// Speichere den RefactoredIssue in die DB
+					RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
+					allRefactoredIssues.add(savedIssue);
+				}
 			}
 			return new ResponseEntity<List<RefactoredIssue>>(allRefactoredIssues, HttpStatus.OK);
 		} catch (Exception e) {

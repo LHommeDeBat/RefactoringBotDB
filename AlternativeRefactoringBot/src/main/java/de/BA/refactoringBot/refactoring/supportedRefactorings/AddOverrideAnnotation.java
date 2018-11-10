@@ -28,7 +28,9 @@ import de.BA.refactoringBot.model.sonarQube.Issue;
 @Component
 public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 
+	Integer line;
 	String methodName;
+	CompilationUnit compilationUnit;
 
 	@Autowired
 	BotConfiguration botConfig;
@@ -40,13 +42,12 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 	 * @param declaration
 	 * @param line
 	 */
-	public void visit(MethodDeclaration declaration, Integer line) {
-
+	public void visit(MethodDeclaration declaration, Object arg) {
+	
 		if (line == declaration.getName().getBegin().get().line) {
 			methodName = declaration.getNameAsString();
 			declaration.addMarkerAnnotation("Override");
 		}
-
 	}
 
 	/**
@@ -61,22 +62,24 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 		String project = issue.getProject();
 		String component = issue.getComponent();
 		String path = component.substring(project.length() + 1, component.length());
-		Integer line = issue.getLine();
-		FileInputStream in = new FileInputStream(botConfig.getBotWorkingDirectory() + path);
-		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
-		System.out.println(LexicalPreservingPrinter.print(compilationUnit));
-		visit(compilationUnit, line);
+		line = issue.getLine();
+		FileInputStream in = new FileInputStream(
+				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
+		compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
+		visit(compilationUnit, null);
+		
 		System.out.println(LexicalPreservingPrinter.print(compilationUnit));
 
 		/**
 		 * Actually apply changes to the File
 		 */
 
-		PrintWriter out = new PrintWriter(botConfig.getBotWorkingDirectory() + path);
+		PrintWriter out = new PrintWriter(
+				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
 		out.println(LexicalPreservingPrinter.print(compilationUnit));
 		out.close();
 
-		return this.buildRefactoredIssue(issue, gitConfig);
+		return buildRefactoredIssue(issue, gitConfig);
 	}
 
 	/**
@@ -107,7 +110,7 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 		refactoredIssue.setCommitMessage(getCommitMessage());
 
 		refactoredIssue.setSonarCubeProjectKey(gitConfig.getSonarCubeProjectKey());
-		refactoredIssue.setSonarCubeIssueKey(issue.getKey());
+		refactoredIssue.setSonarCubeIssueRule(issue.getRule());
 		refactoredIssue.setKindOfRefactoring(getRefactoringName());
 
 		return refactoredIssue;

@@ -19,6 +19,7 @@ public class GitConfiguration {
 	private String repoApiLink;
 	private String repoGitLink;
 	private String repoService;
+	private String projectRootFolder;
 	
 	private String botName;
 	private String botPassword;
@@ -126,6 +127,14 @@ public class GitConfiguration {
 
 	public void setMaxAmountRequests(Integer maxAmountRequests) {
 		this.maxAmountRequests = maxAmountRequests;
+	}
+
+	public String getProjectRootFolder() {
+		return projectRootFolder;
+	}
+
+	public void setProjectRootFolder(String projectRootFolder) {
+		this.projectRootFolder = projectRootFolder;
 	}
 	
 }

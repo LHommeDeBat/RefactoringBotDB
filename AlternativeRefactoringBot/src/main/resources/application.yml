@@ -18,3 +18,4 @@ spring:
   profiles: dev
 bot:
   botWorkingDirectory: C:\\Users\\stefa\\Bachelorarbeit-Repos\\PullFolder\\workingRepo
+  botRefactoringDirectory: C:/Users/stefa/Bachelorarbeit-Repos/PullFolder/workingRepo/
