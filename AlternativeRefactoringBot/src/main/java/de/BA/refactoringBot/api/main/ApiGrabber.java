@@ -15,6 +15,7 @@ import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.sonarQube.Issue;
 
 /**
  * Diese Klasse leitet alle Anfragen an die passenden APIs weiter.
@@ -86,7 +87,7 @@ public class ApiGrabber {
 	}
 
 	/**
-	 * Diese Methode erstellt einen PullRequest auf Github, falls der Request,
+	 * Diese Methode erstellt einen Request auf einem Filehoster, falls der Request,
 	 * welcher Refactored wurde, nicht dem Bot gehöhrt und er dementsprechend für
 	 * die Bearbeitung keine Rechte hat,´.
 	 * 
@@ -100,6 +101,26 @@ public class ApiGrabber {
 		case "github":
 			// Erstelle Request-Objekt
 			GithubCreateRequest createRequest = githubTranslator.makeCreateRequest(request, gitConfig);
+			// Erstelle Request auf Github
+			githubGrabber.createRequest(createRequest, gitConfig);
+			break;
+		}
+	}
+
+	/**
+	 * Diese Methode erstellt einen Request auf einem Filehoster, falls SonarCube zu
+	 * refactorende Issues gefunden hat.
+	 * 
+	 * @param request
+	 * @param gitConfig
+	 * @throws Exception
+	 */
+	public void makeCreateRequestWithSonarQube(Issue issue, GitConfiguration gitConfig) throws Exception {
+		// Wähle passenden Service aus
+		switch (gitConfig.getRepoService()) {
+		case "github":
+			// Erstelle Request-Objekt
+			GithubCreateRequest createRequest = githubTranslator.makeCreateRequestWithSonarQube(issue, gitConfig);
 			// Erstelle Request auf Github
 			githubGrabber.createRequest(createRequest, gitConfig);
 			break;

@@ -1,6 +1,8 @@
 package de.BA.refactoringBot.rest;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -22,7 +24,11 @@ import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
+import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssueRepository;
+import de.BA.refactoringBot.model.sonarQube.Issue;
 import de.BA.refactoringBot.model.sonarQube.SonarCubeIssues;
+import de.BA.refactoringBot.refactoring.RefactoringPicker;
 import io.swagger.annotations.ApiOperation;
 
 /**
@@ -45,9 +51,13 @@ public class RefactoringController {
 	@Autowired
 	ConfigurationRepository configRepo;
 	@Autowired
+	RefactoredIssueRepository refactoredIssues;
+	@Autowired
 	BotConfiguration botConfig;
 	@Autowired
 	BotController botController;
+	@Autowired
+	RefactoringPicker refactoring;
 
 	/**
 	 * Diese Methode testet die GitHub API und einige Bot-Funktionen.
@@ -124,6 +134,9 @@ public class RefactoringController {
 	@RequestMapping(value = "/refactorWithSonarCube/{configID}", method = RequestMethod.GET, produces = "application/json")
 	@ApiOperation(value = "Führt Refactoring anhand der SonarCube-Issues in einem Repository aus.")
 	public ResponseEntity<?> refactorWithSonarCube(@PathVariable Long configID) {
+		
+		// Erstelle Liste von Refactored Issues
+		List<RefactoredIssue> allRefactoredIssues = new ArrayList<RefactoredIssue>();
 
 		// Hole Git-Konfiguration für Bot falls Existiert
 		Optional<GitConfiguration> gitConfig = configRepo.findById(configID);
@@ -149,7 +162,29 @@ public class RefactoringController {
 		try {
 			// Hole Issues von der SonarCube-API
 			allIssues = sonarCubeGrabber.getIssues(gitConfig.get().getSonarCubeProjectKey());
-			return new ResponseEntity<SonarCubeIssues>(allIssues, HttpStatus.OK);
+			
+			// Gehe alle Issues durch
+			// TODO: Funktion testen
+			for (Issue issue: allIssues.getIssues()) {
+				// Pulle Repo zum Arbeiten
+				dataGetter.pullGithubRepo(gitConfig.get().getForkGitLink());
+				// TODO: Dynamischer Branch
+				dataGetter.checkoutBranch("master");
+				
+				// Führe Refactoring aus
+				RefactoredIssue refactoredIssue = refactoring.pickRefactoring(issue, gitConfig.get());
+				
+				// Pushe Änderungen
+				dataGetter.pushChanges(gitConfig.get());
+				
+				// Erstelle PullRequest
+				grabber.makeCreateRequestWithSonarQube(issue, gitConfig.get());
+				
+				// Speichere den RefactoredIssue in die DB
+				RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
+				allRefactoredIssues.add(savedIssue);
+			}
+			return new ResponseEntity<List<RefactoredIssue>>(allRefactoredIssues, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

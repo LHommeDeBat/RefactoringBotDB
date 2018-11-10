@@ -23,6 +23,7 @@ import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComments;
+import de.BA.refactoringBot.model.sonarQube.Issue;
 
 /**
  * Diese Klasse ist dafür zuständig, GitHub Objekte in eigene Objekte
@@ -200,6 +201,34 @@ public class GithubObjectTranslator {
 		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " erstellt.");
 		createRequest.setHead(gitConfig.getBotName() + ":" + refactoredRequest.getBranchName());
 		createRequest.setBase(refactoredRequest.getBranchName());
+		createRequest.setMaintainer_can_modify(true);
+
+		// Gebe Request zurück
+		return createRequest;
+	}
+	
+	/**
+	 * Diese Methode erstellt einen Pull-Request im Github-Format damit der Bot
+	 * diesen Pull-Request auf Github erstellen kann.
+	 * 
+	 * @param gitConfig
+	 * @return createRequest
+	 */
+	public GithubCreateRequest makeCreateRequestWithSonarQube(Issue issue, GitConfiguration gitConfig) {
+		// Erstelle Request
+		GithubCreateRequest createRequest = new GithubCreateRequest();
+
+		// Erstelle heutiges Datum
+		SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
+		Date now = new Date();
+		String date = sdf.format(now);
+
+		// Fülle Request mit Daten
+		// TODO: Dynamische Branches
+		createRequest.setTitle("Bot Pull-Request Refactoring mit SonarCube");
+		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " erstellt.");
+		createRequest.setHead(gitConfig.getBotName() + ":master");
+		createRequest.setBase("master");
 		createRequest.setMaintainer_can_modify(true);
 
 		// Gebe Request zurück
