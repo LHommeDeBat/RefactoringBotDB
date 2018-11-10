@@ -21,7 +21,6 @@ public class RefactoredIssue {
 	private String sonarCubeProjectKey;
 	private String sonarCubeIssueRule;
 	private String kindOfRefactoring;
-	private String commitMessage;
 	private String repoBranch;
 	
 	public Long getIssueId() {
@@ -82,14 +81,6 @@ public class RefactoredIssue {
 	
 	public void setKindOfRefactoring(String kindOfRefactoring) {
 		this.kindOfRefactoring = kindOfRefactoring;
-	}
-
-	public String getCommitMessage() {
-		return commitMessage;
-	}
-
-	public void setCommitMessage(String commitMessage) {
-		this.commitMessage = commitMessage;
 	}
 
 	public String getRepoBranch() {

@@ -164,18 +164,20 @@ public class RefactoringController {
 			allIssues = sonarCubeGrabber.getIssues(gitConfig.get().getSonarCubeProjectKey());
 			
 			// Gehe alle Issues durch
-			// TODO: Funktion testen
 			for (Issue issue: allIssues.getIssues()) {
 				// Pulle Repo zum Arbeiten
 				dataGetter.pullGithubRepo(gitConfig.get().getForkGitLink());
 				// TODO: Dynamischer Branch
 				dataGetter.checkoutBranch("master");
 				
-				// Führe Refactoring aus
-				RefactoredIssue refactoredIssue = refactoring.pickRefactoring(issue, gitConfig.get());
+				// Versuche Refactoring auszuführen
+				String commitMessage = refactoring.pickRefactoring(issue, gitConfig.get());
 				
-				// Falls Refactoring für Issue existiert
-				if (refactoredIssue != null) {
+				// Falls Refactoring für Issue ausgeführt wurde
+				if (commitMessage != null) {
+					// Baue RefactoredIssue-Objekt
+					RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(issue, gitConfig.get());
+					
 					// Pushe Änderungen
 					/*dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
 					

@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
-import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
 import de.BA.refactoringBot.model.sonarQube.Issue;
 import de.BA.refactoringBot.refactoring.supportedRefactorings.AddOverrideAnnotation;
 
@@ -27,10 +26,10 @@ public class RefactoringPicker {
 	 * Sonarcube aus.
 	 * 
 	 * @param issue
-	 * @return refactoredIssue
+	 * @return commitMessage
 	 * @throws Exception 
 	 */
-	public RefactoredIssue pickRefactoring(Issue issue, GitConfiguration gitConfig) throws Exception {
+	public String pickRefactoring(Issue issue, GitConfiguration gitConfig) throws Exception {
 	
 		// Wähle Refactoring nach SonarCube-Key
 		try {

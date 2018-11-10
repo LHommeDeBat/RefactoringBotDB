@@ -1,11 +1,16 @@
 package de.BA.refactoringBot.controller.main;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.springframework.stereotype.Component;
 
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
+import de.BA.refactoringBot.model.sonarQube.Issue;
 
 @Component
 public class BotController {
@@ -33,7 +38,7 @@ public class BotController {
 	 * 
 	 * @param requests
 	 * @param gitConfig
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public void checkAmountOfBotRequests(BotPullRequests requests, GitConfiguration gitConfig) throws Exception {
 
@@ -51,6 +56,55 @@ public class BotController {
 		if (counter >= gitConfig.getMaxAmountRequests()) {
 			throw new Exception("Maximale Anzahl an Requests erreicht bzw. überschritten." + "(Maximum = "
 					+ gitConfig.getMaxAmountRequests() + "; Aktuell = " + counter + " Requests des Bots offen)");
+		}
+	}
+
+	/**
+	 * Diese Methode erstellt das Objekt, welches das durchgeführte Refactoring
+	 * beschreibt.
+	 * 
+	 * @param issue
+	 * @param gitConfig
+	 * @return refactoredIssue
+	 */
+	public RefactoredIssue buildRefactoredIssue(Issue issue, GitConfiguration gitConfig) {
+		// Erstelle Objekt
+		RefactoredIssue refactoredIssue = new RefactoredIssue();
+
+		// Erstelle Zeitstempel
+		SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd'T'HH:mm:ss.SSSZ");
+		Date now = new Date();
+		String date = sdf.format(now);
+
+		// Fülle Objekt
+		refactoredIssue.setRepoName(gitConfig.getRepoName());
+		refactoredIssue.setRepoOwner(gitConfig.getRepoOwner());
+		refactoredIssue.setRepoService(gitConfig.getRepoService());
+		refactoredIssue.setDateOfRefactoring(date);
+
+		// TODO: dynamischer Branch für SonarCube
+		refactoredIssue.setRepoBranch("master");
+
+		refactoredIssue.setSonarCubeProjectKey(gitConfig.getSonarCubeProjectKey());
+		refactoredIssue.setSonarCubeIssueRule(issue.getRule());
+		refactoredIssue.setKindOfRefactoring(getRefactoringName(issue.getRule()));
+
+		return refactoredIssue;
+	}
+
+	/**
+	 * Diese Methode erstellt anhand der SonarCube-Regel einen lesbaren
+	 * Refactoring-Text und gibt ihn zurück.
+	 * 
+	 * @param sonarCubeRule
+	 * @return ruleAsText
+	 */
+	private String getRefactoringName(String sonarCubeRule) {
+		switch (sonarCubeRule) {
+		case "squid:S1161":
+			return "Add Override Annotation";
+		default:
+			return "Unknown Refactoring";
 		}
 	}
 }
