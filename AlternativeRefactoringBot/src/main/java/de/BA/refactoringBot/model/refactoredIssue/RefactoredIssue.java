@@ -11,8 +11,8 @@ import javax.persistence.Table;
 public class RefactoredIssue {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long issueId;
 	
 	private String repoName;
 	private String repoOwner;
@@ -24,8 +24,8 @@ public class RefactoredIssue {
 	private String commitMessage;
 	private String repoBranch;
 	
-	public Long getId() {
-		return id;
+	public Long getIssueId() {
+		return issueId;
 	}
 	
 	public String getRepoName() {

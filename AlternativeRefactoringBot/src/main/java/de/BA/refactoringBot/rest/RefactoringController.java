@@ -70,7 +70,7 @@ public class RefactoringController {
 	public ResponseEntity<?> refactorWithComments(@PathVariable Long configID) {
 
 		// Hole Git-Konfiguration für Bot falls Existiert
-		Optional<GitConfiguration> gitConfig = configRepo.findById(configID);
+		Optional<GitConfiguration> gitConfig = configRepo.getByID(configID);
 		// Falls nicht existiert
 		if (!gitConfig.isPresent()) {
 			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",
@@ -139,7 +139,7 @@ public class RefactoringController {
 		List<RefactoredIssue> allRefactoredIssues = new ArrayList<RefactoredIssue>();
 
 		// Hole Git-Konfiguration für Bot falls Existiert
-		Optional<GitConfiguration> gitConfig = configRepo.findById(configID);
+		Optional<GitConfiguration> gitConfig = configRepo.getByID(configID);
 		// Falls nicht existiert
 		if (!gitConfig.isPresent()) {
 			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",

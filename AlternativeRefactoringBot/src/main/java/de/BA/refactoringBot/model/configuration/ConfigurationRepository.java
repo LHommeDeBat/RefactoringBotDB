@@ -26,4 +26,7 @@ public interface ConfigurationRepository extends CrudRepository<GitConfiguration
 	public Optional<GitConfiguration> getConfigByFork(@Param("repoName") String repoName,
 			@Param("botName") String botName);
 
+	@Query("SELECT a FROM GitConfiguration a WHERE a.configurationId=:configurationId")
+	public Optional<GitConfiguration> getByID(@Param("configurationId") Long configurationId);
+
 }

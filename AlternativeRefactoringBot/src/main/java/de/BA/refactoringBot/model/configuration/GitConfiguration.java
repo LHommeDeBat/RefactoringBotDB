@@ -11,8 +11,8 @@ import javax.persistence.Table;
 public class GitConfiguration {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long configurationId;
 	
 	private String repoName;
 	private String repoOwner;
@@ -29,8 +29,8 @@ public class GitConfiguration {
 	private String sonarCubeProjectKey;
 	private Integer maxAmountRequests;
 	
-	public Long getId() {
-		return id;
+	public Long getConfigurationId() {
+		return configurationId;
 	}
 	
 	public String getRepoName() {
