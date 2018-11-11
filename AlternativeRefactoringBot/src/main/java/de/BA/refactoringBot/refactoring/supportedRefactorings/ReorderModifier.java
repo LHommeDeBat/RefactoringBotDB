@@ -3,30 +3,34 @@ package de.BA.refactoringBot.refactoring.supportedRefactorings;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.EnumSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
+import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.visitor.ModifierVisitor;
 
 import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.sonarQube.Issue;
 
 /**
- * This class is used for executing the add override annotation refactoring.
+ * This class is used to execute the reorder modifier refactoring.
+ * 
+ * The LexicalPreservationPrinter is not used here, because there are Problems
+ * when reordering the Modifiers. The Printer expects the String, that was there
+ * before the Refactoring was done and therefore throws an exception. It also
+ * has the same problem as the remove of the unused variable.
  *
  * @author Timo Pfaff
  */
 @Component
-public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
-
-	Integer line;
-	String methodName;
+public class ReorderModifier extends ModifierVisitor<Void> {
 
 	@Autowired
 	BotConfiguration botConfig;
@@ -45,44 +49,35 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 		String project = issue.getProject();
 		String component = issue.getComponent();
 		String path = component.substring(project.length() + 1, component.length());
-		line = issue.getLine();
 
 		// Lese Datei aus
 		FileInputStream in = new FileInputStream(
 				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
-		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
+		CompilationUnit compilationUnit = JavaParser.parse(in);
 
-		// Besuche Codezeile zum Refactoren
+		// Finde Code in Datei zum Refactoren
 		visit(compilationUnit, null);
 
 		// TODO: Entferne Ausgabe
-		System.out.println(LexicalPreservingPrinter.print(compilationUnit));
+		System.out.println(compilationUnit.toString());
 
 		// Schreibe Änderungen in Datei
 		PrintWriter out = new PrintWriter(
 				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
-		out.println(LexicalPreservingPrinter.print(compilationUnit));
+		out.println(compilationUnit.toString());
 		out.close();
 
 		// Gebe passende Commit-Nachricht zurück
-		return "Added override annotation to method " + methodName;
+		return "Reordered modifier";
 	}
 
 	/**
-	 * Diese Methode besucht die Methode, welche die Annotation benötigt und fügt
-	 * diese dort hinzu.
-	 * 
-	 * @param declaration
-	 * @param line
+	 * Diese Methode sortiert alle Modifier.
 	 */
-	public void visit(MethodDeclaration declaration, Object arg) {
-		// Falls Methodenzeile = Issuezeile
-		if (line == declaration.getName().getBegin().get().line) {
-			// Lese Methodennamen aus
-			methodName = declaration.getNameAsString();
-			// Füge Annotation hinzu
-			declaration.addMarkerAnnotation("Override");
-		}
-	}
+	public Node visit(FieldDeclaration declarator, Void args) {
+		EnumSet<Modifier> modifiers = declarator.getModifiers();
+		declarator.setModifiers(modifiers);
+		return declarator;
 
+	}
 }

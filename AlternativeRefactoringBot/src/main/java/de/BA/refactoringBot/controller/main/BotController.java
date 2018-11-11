@@ -103,6 +103,8 @@ public class BotController {
 		switch (sonarCubeRule) {
 		case "squid:S1161":
 			return "Add Override Annotation";
+		case "squid:ModifiersOrderCheck":
+			return "Reorder Modifier";
 		default:
 			return "Unknown Refactoring";
 		}
