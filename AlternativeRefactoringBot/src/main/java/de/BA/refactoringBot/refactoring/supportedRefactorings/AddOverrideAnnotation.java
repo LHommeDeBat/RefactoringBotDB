@@ -36,30 +36,34 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 	 * 
 	 * @param issue
 	 * @param gitConfig
-	 * @return
+	 * @return commitMessage
 	 * @throws FileNotFoundException
 	 */
 	public String performRefactoring(Issue issue, GitConfiguration gitConfig) throws FileNotFoundException {
+		// Bereite Refactoringdaten vor
 		String project = issue.getProject();
 		String component = issue.getComponent();
 		String path = component.substring(project.length() + 1, component.length());
 		line = issue.getLine();
+		
+		// Lese Datei aus
 		FileInputStream in = new FileInputStream(
 				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
 		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
+		
+		// Besuche Codezeile zum Refactoren
 		visit(compilationUnit, null);
 
+		// TODO: Entferne Ausgabe
 		System.out.println(LexicalPreservingPrinter.print(compilationUnit));
 
-		/**
-		 * Actually apply changes to the File
-		 */
-
+	    // Schreibe Änderungen in Datei
 		PrintWriter out = new PrintWriter(
 				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
 		out.println(LexicalPreservingPrinter.print(compilationUnit));
 		out.close();
 
+		// Gebe passende Commit-Nachricht zurück
 		return "Added override annotation to method " + methodName;
 	}
 
@@ -73,6 +77,7 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 	public void visit(MethodDeclaration declaration, Object arg) {
         // Falls Methodenzeile = Issuezeile
 		if (line == declaration.getName().getBegin().get().line) {
+			// Lese Methodennamen aus
 			methodName = declaration.getNameAsString();
 			// Füge Annotation hinzu
 			declaration.addMarkerAnnotation("Override");
