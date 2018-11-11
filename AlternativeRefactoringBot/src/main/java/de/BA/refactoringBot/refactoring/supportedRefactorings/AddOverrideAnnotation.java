@@ -32,21 +32,6 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 	BotConfiguration botConfig;
 
 	/**
-	 * Diese Methode besucht die Methode, welche die Annotation benötigt und fügt
-	 * diese dort hinzu.
-	 * 
-	 * @param declaration
-	 * @param line
-	 */
-	public void visit(MethodDeclaration declaration, Object arg) {
-	
-		if (line == declaration.getName().getBegin().get().line) {
-			methodName = declaration.getNameAsString();
-			declaration.addMarkerAnnotation("Override");
-		}
-	}
-
-	/**
 	 * Diese Methode führt das Refactoring durch.
 	 * 
 	 * @param issue
@@ -63,7 +48,7 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
 		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
 		visit(compilationUnit, null);
-		
+
 		System.out.println(LexicalPreservingPrinter.print(compilationUnit));
 
 		/**
@@ -75,16 +60,23 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 		out.println(LexicalPreservingPrinter.print(compilationUnit));
 		out.close();
 
-		return getCommitMessage();
+		return "Added override annotation to method " + methodName;
 	}
 
 	/**
-	 * Diese Methode gibt die Commit-Nachricht zurück.
+	 * Diese Methode besucht die Methode, welche die Annotation benötigt und fügt
+	 * diese dort hinzu.
 	 * 
-	 * @return commitMessage
+	 * @param declaration
+	 * @param line
 	 */
-	public String getCommitMessage() {
-		return "Added override annotation to method " + methodName;
+	public void visit(MethodDeclaration declaration, Object arg) {
+        // Falls Methodenzeile = Issuezeile
+		if (line == declaration.getName().getBegin().get().line) {
+			methodName = declaration.getNameAsString();
+			// Füge Annotation hinzu
+			declaration.addMarkerAnnotation("Override");
+		}
 	}
 
 }
