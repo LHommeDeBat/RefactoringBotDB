@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ScheduledOperations {
+	
+	@Value("${server.port}")
+	Integer port;
 
 	/**
 	 * Diese Methode startet auf Windows die SwaggerUI im Standardbrowser beim Start
@@ -22,7 +26,7 @@ public class ScheduledOperations {
 	@PostConstruct
 	public void startSwaggerUI() {
 		Runtime runtime = Runtime.getRuntime();
-		String url = "http://localhost:8808/swagger-ui.html#";
+		String url = "http://localhost:" + port + "/swagger-ui.html#";
 		try {
 			runtime.exec("rundll32 url.dll,FileProtocolHandler " + url);
 		} catch (IOException e) {
