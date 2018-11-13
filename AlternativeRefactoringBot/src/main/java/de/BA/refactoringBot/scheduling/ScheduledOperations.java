@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Diese Klasse führt geschedulte Funktionen aus.
+ * Diese Klasse führt geschedulde Funktionen aus.
  * 
  * @author Stefan Basaric
  *
@@ -20,8 +20,8 @@ public class ScheduledOperations {
 	Integer port;
 
 	/**
-	 * Diese Methode startet auf Windows die SwaggerUI im Standardbrowser beim Start
-	 * der Anwendung.
+	 * Diese Methode versucht auf allen gängigen OS-Systemen die SwaggerUI im Standardbrowser beim Start
+	 * der Anwendung zum Starten.
 	 */
 	@PostConstruct
 	public void startSwaggerUI() {
