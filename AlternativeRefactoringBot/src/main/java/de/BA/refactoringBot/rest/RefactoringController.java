@@ -174,14 +174,14 @@ public class RefactoringController {
 		try {
 			// Hole Issues von der SonarCube-API
 			allIssues = sonarCubeGrabber.getIssues(gitConfig.get().getSonarCubeProjectKey());
+			
+			// Pulle Repo zum Arbeiten
+			dataGetter.pullGithubRepo(gitConfig.get().getForkGitLink());
+			// TODO: Dynamischer Branch
+			dataGetter.checkoutBranch("master");
 
 			// Gehe alle Issues durch
 			for (Issue issue : allIssues.getIssues()) {
-				// Pulle Repo zum Arbeiten
-				dataGetter.pullGithubRepo(gitConfig.get().getForkGitLink());
-				// TODO: Dynamischer Branch
-				dataGetter.checkoutBranch("master");
-
 				// Versuche Refactoring auszuführen
 				String commitMessage = refactoring.pickRefactoring(issue, gitConfig.get());
 
@@ -190,19 +190,20 @@ public class RefactoringController {
 					// Baue RefactoredIssue-Objekt
 					RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(issue, gitConfig.get());
 
-					// Pushe Änderungen
-					/*
-					 * dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
-					 * 
-					 * // Erstelle PullRequest grabber.makeCreateRequestWithSonarQube(issue,
-					 * gitConfig.get());
-					 */
-
 					// Speichere den RefactoredIssue in die DB
 					RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
 					allRefactoredIssues.add(savedIssue);
 				}
 			}
+			
+			// Pushe Änderungen + erstelle Request
+			/*
+			 * dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
+			 * 
+			 * // Erstelle PullRequest grabber.makeCreateRequestWithSonarQube(issue,
+			 * gitConfig.get());
+			 */
+			
 			return new ResponseEntity<List<RefactoredIssue>>(allRefactoredIssues, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
