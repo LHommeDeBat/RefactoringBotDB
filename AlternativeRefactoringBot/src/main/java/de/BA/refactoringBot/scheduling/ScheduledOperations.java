@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ScheduledOperations {
-	
+
 	@Value("${server.port}")
 	Integer port;
 
@@ -25,10 +25,25 @@ public class ScheduledOperations {
 	 */
 	@PostConstruct
 	public void startSwaggerUI() {
+		// Starte Runtime
 		Runtime runtime = Runtime.getRuntime();
+		// Hole URL
 		String url = "http://localhost:" + port + "/swagger-ui.html#";
+		// Prüfe OS-System
+		String os = System.getProperty("os.name").toLowerCase();
 		try {
-			runtime.exec("rundll32 url.dll,FileProtocolHandler " + url);
+			// Falls OS = Windows
+			if (os.indexOf("win") >= 0) {
+				runtime.exec("rundll32 url.dll,FileProtocolHandler " + url);
+			}
+			// Falls OS = MAX OS
+			if (os.indexOf("mac") >= 0) {
+				runtime.exec("open " + url);
+			}
+			// Falls OS = Linux
+			if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
+				runtime.exec("xdg-open " + url);
+			}
 		} catch (IOException e) {
 			System.err.println("Konnte SwaggerUI nicht automatisch im Browser starten!");
 		}
