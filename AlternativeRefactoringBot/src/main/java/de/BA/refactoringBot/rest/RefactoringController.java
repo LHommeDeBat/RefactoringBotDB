@@ -60,7 +60,7 @@ public class RefactoringController {
 	RefactoringPicker refactoring;
 
 	/**
-	 * Diese Methode testet die GitHub API und einige Bot-Funktionen.
+	 * Diese Methode führt Refactorings anhand von Kommentaren in Pull-Requests aus.
 	 * 
 	 * @param configID
 	 * @return allRequests
@@ -131,6 +131,12 @@ public class RefactoringController {
 		return new ResponseEntity<BotPullRequests>(allRequests, HttpStatus.OK);
 	}
 
+	/**
+	 * Diese Methode führt Refactorings anhand von SonarQube-Befunden aus.
+	 * 
+	 * @param configID
+	 * @return allRefactoredIssues
+	 */
 	@RequestMapping(value = "/refactorWithSonarCube/{configID}", method = RequestMethod.GET, produces = "application/json")
 	@ApiOperation(value = "Führt Refactoring anhand der SonarCube-Issues in einem Repository aus.")
 	public ResponseEntity<?> refactorWithSonarCube(@PathVariable Long configID) {
