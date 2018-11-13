@@ -14,16 +14,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "bot")
 public class BotConfiguration {
 
-	private String botWorkingDirectory = "";
 	private String botRefactoringDirectory = "";
-
-	public String getBotWorkingDirectory() {
-		return botWorkingDirectory;
-	}
-
-	public void setBotWorkingDirectory(String botWorkingDirectory) {
-		this.botWorkingDirectory = botWorkingDirectory;
-	}
 
 	public String getBotRefactoringDirectory() {
 		return botRefactoringDirectory;

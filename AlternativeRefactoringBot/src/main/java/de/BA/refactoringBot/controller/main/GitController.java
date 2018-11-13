@@ -34,10 +34,10 @@ public class GitController {
 	public void pullGithubRepo(String repoURL) throws Exception {
 		try {
 			// Lösche zunächst den Arbeitsordner
-			FileUtils.deleteDirectory(new File(botConfig.getBotWorkingDirectory()));
+			FileUtils.deleteDirectory(new File(botConfig.getBotRefactoringDirectory()));
 
 			// Klone Repo aus der Konfiguration in Arbeitsverzeichnis
-			Git git = Git.cloneRepository().setURI(repoURL).setDirectory(new File(botConfig.getBotWorkingDirectory()))
+			Git git = Git.cloneRepository().setURI(repoURL).setDirectory(new File(botConfig.getBotRefactoringDirectory()))
 					.call();
 			git.close();
 		} catch (Exception e) {
@@ -57,7 +57,7 @@ public class GitController {
 		if (branchName != "master") {
 			try {
 				// Öffne Arbeitsverzeichnis
-				Git git = Git.open(new File(botConfig.getBotWorkingDirectory()));
+				Git git = Git.open(new File(botConfig.getBotRefactoringDirectory()));
 				// Wechsle auf Branch des PullRequests
 				@SuppressWarnings("unused")
 				Ref ref = git.checkout().setCreateBranch(true).setName(branchName)
@@ -82,7 +82,7 @@ public class GitController {
 	public void pushChanges(GitConfiguration gitConfig, String commitMessage) throws Exception {
 		try {
 			// Öffne Arbeitsverzeichnis
-			Git git = Git.open(new File(botConfig.getBotWorkingDirectory()));
+			Git git = Git.open(new File(botConfig.getBotRefactoringDirectory()));
 			// Führe 'git add .' aus
 			git.add().addFilepattern(".").call();
 			// Mache einen commit (Aktuell hardgecodete Nachricht)

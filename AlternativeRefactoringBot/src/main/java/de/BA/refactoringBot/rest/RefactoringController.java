@@ -105,8 +105,8 @@ public class RefactoringController {
 						// TODO: Später durch Refactoring ersetzen - Erstelle File
 						Random rand = new Random();
 						int randomFileNumber = rand.nextInt(100000) + 1;
-						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text"
-								+ randomFileNumber + ".txt");
+						File f = new File(botConfig.getBotRefactoringDirectory()
+								+ gitConfig.get().getProjectRootFolder() + "/src/text" + randomFileNumber + ".txt");
 						f.getParentFile().mkdirs();
 						f.createNewFile();
 
@@ -134,7 +134,7 @@ public class RefactoringController {
 	@RequestMapping(value = "/refactorWithSonarCube/{configID}", method = RequestMethod.GET, produces = "application/json")
 	@ApiOperation(value = "Führt Refactoring anhand der SonarCube-Issues in einem Repository aus.")
 	public ResponseEntity<?> refactorWithSonarCube(@PathVariable Long configID) {
-		
+
 		// Erstelle Liste von Refactored Issues
 		List<RefactoredIssue> allRefactoredIssues = new ArrayList<RefactoredIssue>();
 
@@ -144,6 +144,12 @@ public class RefactoringController {
 		if (!gitConfig.isPresent()) {
 			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",
 					HttpStatus.NOT_FOUND);
+		}
+		// Falls Projekt nicht auf SonarCube gehostet
+		if (gitConfig.get().getSonarCubeProjectKey() == null) {
+			return new ResponseEntity<String>(
+					"Konfiguration besitzt kein SonarCube-Projektkey! Führen Sie Refactorings über Request-Kommentare aus.",
+					HttpStatus.BAD_GATEWAY);
 		}
 
 		try {
@@ -162,28 +168,30 @@ public class RefactoringController {
 		try {
 			// Hole Issues von der SonarCube-API
 			allIssues = sonarCubeGrabber.getIssues(gitConfig.get().getSonarCubeProjectKey());
-			
+
 			// Gehe alle Issues durch
-			for (Issue issue: allIssues.getIssues()) {
+			for (Issue issue : allIssues.getIssues()) {
 				// Pulle Repo zum Arbeiten
 				dataGetter.pullGithubRepo(gitConfig.get().getForkGitLink());
 				// TODO: Dynamischer Branch
 				dataGetter.checkoutBranch("master");
-				
+
 				// Versuche Refactoring auszuführen
 				String commitMessage = refactoring.pickRefactoring(issue, gitConfig.get());
-				
+
 				// Falls Refactoring für Issue ausgeführt wurde
 				if (commitMessage != null) {
 					// Baue RefactoredIssue-Objekt
 					RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(issue, gitConfig.get());
-					
+
 					// Pushe Änderungen
-					/*dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
-					
-					// Erstelle PullRequest
-					grabber.makeCreateRequestWithSonarQube(issue, gitConfig.get()); */
-					
+					/*
+					 * dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
+					 * 
+					 * // Erstelle PullRequest grabber.makeCreateRequestWithSonarQube(issue,
+					 * gitConfig.get());
+					 */
+
 					// Speichere den RefactoredIssue in die DB
 					RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
 					allRefactoredIssues.add(savedIssue);

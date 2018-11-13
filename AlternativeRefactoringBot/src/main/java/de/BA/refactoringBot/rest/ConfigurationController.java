@@ -51,8 +51,8 @@ public class ConfigurationController {
 			@RequestParam(value = "ProjectRootFolder", required = true, defaultValue = "Calculator") String projectRootFolder,
 			@RequestParam(value = "botUsername", required = true, defaultValue = "LHommeDeBot") String botUsername,
 			@RequestParam(value = "botPassword", required = true, defaultValue = "Botboy55") String botPassword,
-			@RequestParam(value = "botToken", required = true, defaultValue = "Token hier eingeben") String botToken,
-			@RequestParam(value = "sonarCubeProjectKey", required = true, defaultValue = "Test:Test:master") String sonarCubeProjectKey,
+			@RequestParam(value = "botToken", required = true) String botToken,
+			@RequestParam(value = "sonarCubeProjectKey", required = false) String sonarCubeProjectKey,
 			@RequestParam(value = "maxAmountRequests", required = true, defaultValue = "5") Integer maxAmountRequests) {
 		// Schaue ob Repository schon existiert
 		Optional<GitConfiguration> existsConfig = repo.getConfigByName(repoName, repoOwner);
