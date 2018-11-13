@@ -45,15 +45,15 @@ public class ConfigurationController {
 	@RequestMapping(value = "/createConfig", method = RequestMethod.POST, produces = "application/json")
 	@ApiOperation(value = "Erstelle eine Git-Konfiguration")
 	public ResponseEntity<?> add(
-			@RequestParam(value = "repoName", required = true, defaultValue = "TestPullRequest") String repoName,
-			@RequestParam(value = "ownerName", required = true, defaultValue = "LHommeDeBat") String repoOwner,
 			@RequestParam(value = "repoService", required = true, defaultValue = "Github") String repoService,
+			@RequestParam(value = "repoName", required = true, defaultValue = "RefactoringTest") String repoName,
+			@RequestParam(value = "ownerName", required = true, defaultValue = "TimoPfaff") String repoOwner,
+			@RequestParam(value = "ProjectRootFolder", required = true, defaultValue = "Calculator") String projectRootFolder,
 			@RequestParam(value = "botUsername", required = true, defaultValue = "LHommeDeBot") String botUsername,
 			@RequestParam(value = "botPassword", required = true, defaultValue = "Botboy55") String botPassword,
-			@RequestParam(value = "sonarCubeProjectKey", required = true, defaultValue = "Test:Test:master") String sonarCubeProjectKey,
-			@RequestParam(value = "maxAmountRequests", required = true, defaultValue = "5") Integer maxAmountRequests,
 			@RequestParam(value = "botToken", required = true, defaultValue = "Token hier eingeben") String botToken,
-			@RequestParam(value = "ProjectRootFolder", required = true, defaultValue = "Calculator") String projectRootFolder) {
+			@RequestParam(value = "sonarCubeProjectKey", required = true, defaultValue = "Test:Test:master") String sonarCubeProjectKey,
+			@RequestParam(value = "maxAmountRequests", required = true, defaultValue = "5") Integer maxAmountRequests) {
 		// Schaue ob Repository schon existiert
 		Optional<GitConfiguration> existsConfig = repo.getConfigByName(repoName, repoOwner);
 		// Falls existiert
