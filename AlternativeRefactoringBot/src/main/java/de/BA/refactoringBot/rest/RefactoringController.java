@@ -51,6 +51,8 @@ public class RefactoringController {
 	@Autowired
 	ConfigurationRepository configRepo;
 	@Autowired
+	RefactoredIssueRepository issueRepo;
+	@Autowired
 	RefactoredIssueRepository refactoredIssues;
 	@Autowired
 	BotConfiguration botConfig;
@@ -69,6 +71,9 @@ public class RefactoringController {
 	@ApiOperation(value = "Führt Refactoring anhand der Pull-Request-Kommentare in einem Repository aus.")
 	public ResponseEntity<?> refactorWithComments(@PathVariable Long configID) {
 
+		// Erstelle Liste von Refactored Issues
+		List<RefactoredIssue> allRefactoredIssues = new ArrayList<RefactoredIssue>();
+
 		// Hole Git-Konfiguration für Bot falls Existiert
 		Optional<GitConfiguration> gitConfig = configRepo.getByID(configID);
 		// Falls nicht existiert
@@ -80,8 +85,8 @@ public class RefactoringController {
 		// Initiiere Objekt
 		BotPullRequests allRequests = null;
 		try {
-			// Resette/Synchronisiere Fork mit Parent um Merge-Konflikte zu vermeiden
-			grabber.resetFork(gitConfig.get());
+			// Hole aktuellste OG-Repo-Daten
+			dataGetter.fetchRemote(gitConfig.get());
 			// Hole Requests mit Kommentaren vom Filehoster im Bot-Format
 			allRequests = grabber.getRequestsWithComments(gitConfig.get());
 		} catch (Exception e) {
@@ -93,32 +98,54 @@ public class RefactoringController {
 		for (BotPullRequest request : allRequests.getAllPullRequests()) {
 			// Gehe alle Kommentare eines Requests durch
 			for (BotPullRequestComment comment : request.getAllComments()) {
-				// Falls Kommentar für Bot bestimmt
-				if (botController.checkIfCommentForBot(comment)) {
+				// Falls Kommentar für Bot bestimmt und nicht schon Refactored wurde
+				if (botController.checkIfCommentForBot(comment) && !issueRepo
+						.refactoredComment(gitConfig.get().getRepoService(), comment.getCommentID().toString())
+						.isPresent()) {
 					// Versuche zu Pullen
 					try {
-						// Pulle Repo zum Arbeiten
-						dataGetter.pullGithubRepo(gitConfig.get().getForkGitLink());
-						// Wechsle zum Branch des PullRequests
-						dataGetter.checkoutBranch(request.getBranchName());
+						// Falls Request nicht vom Bot erstellt wurde
+						if (!request.getCreatorName().equals(gitConfig.get().getBotName())) {
+							// Erstelle Branch für das Kommentar-Refactoring
+							String newBranch = gitConfig.get().getRepoService() + "_Refactoring_"
+									+ comment.getCommentID().toString();
+							dataGetter.createBranch(gitConfig.get(), request.getBranchName(), newBranch);
+							// TODO: Später durch Refactoring ersetzen - Erstelle File
+							Random rand = new Random();
+							int randomFileNumber = rand.nextInt(100000) + 1;
+							File f = new File(botConfig.getBotRefactoringDirectory()
+									+ gitConfig.get().getConfigurationId() + "/" + gitConfig.get().getProjectRootFolder()
+									+ "/src/text" + randomFileNumber + ".txt");
+							f.getParentFile().mkdirs();
+							f.createNewFile();
 
-						// TODO: Später durch Refactoring ersetzen - Erstelle File
-						Random rand = new Random();
-						int randomFileNumber = rand.nextInt(100000) + 1;
-						File f = new File(botConfig.getBotRefactoringDirectory()
-								+ gitConfig.get().getProjectRootFolder() + "/src/text" + randomFileNumber + ".txt");
-						f.getParentFile().mkdirs();
-						f.createNewFile();
+							// Pushe Änderungen TODO: dynamische Commitnachricht
+							dataGetter.pushChanges(gitConfig.get(), "Bot hat eine Datei hinzugefügt");
 
-						// Pushe Änderungen TODO: dynamische Commitnachricht
-						dataGetter.pushChanges(gitConfig.get(), "Bot hat eine Datei hinzugefügt");
-
-						// Aktuallisiere Pullrequest und Kommentar + Antworte (falls Bot-Request)
-						if (request.getCreatorName().equals(gitConfig.get().getBotName())) {
-							grabber.makeUpdateRequest(request, comment, gitConfig.get());
+							// Aktuallisiere Pullrequest + Antworte auf Kommentar
+							grabber.makeCreateRequest(request, comment, gitConfig.get(), newBranch);
 						} else {
-							grabber.makeCreateRequest(request, gitConfig.get());
+							// Wechsle zum Refactoring-Branch
+							dataGetter.switchBranch(gitConfig.get(), request.getBranchName());
+							// TODO: Später durch Refactoring ersetzen - Erstelle File
+							Random rand = new Random();
+							int randomFileNumber = rand.nextInt(100000) + 1;
+							File f = new File(botConfig.getBotRefactoringDirectory()
+									+ gitConfig.get().getConfigurationId() + "/" + gitConfig.get().getProjectRootFolder()
+									+ "/src/text" + randomFileNumber + ".txt");
+							f.getParentFile().mkdirs();
+							f.createNewFile();
+
+							// Pushe Änderungen TODO: dynamische Commitnachricht
+							dataGetter.pushChanges(gitConfig.get(), "Bot hat eine Datei hinzugefügt");
+							grabber.makeUpdateRequest(request, comment, gitConfig.get());
 						}
+
+						// Baue RefactoredIssue-Objekt
+						RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(request, comment,
+								gitConfig.get());
+						RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
+						allRefactoredIssues.add(savedIssue);
 					} catch (Exception e) {
 						e.printStackTrace();
 						return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -128,7 +155,7 @@ public class RefactoringController {
 		}
 
 		// Gebe übersetzte Requests zurück
-		return new ResponseEntity<BotPullRequests>(allRequests, HttpStatus.OK);
+		return new ResponseEntity<List<RefactoredIssue>>(allRefactoredIssues, HttpStatus.OK);
 	}
 
 	/**
@@ -159,8 +186,6 @@ public class RefactoringController {
 		}
 
 		try {
-			// Resette/Synchronisiere Fork mit Parent um Merge-Konflikte zu vermeiden
-			grabber.resetFork(gitConfig.get());
 			// Hole Requests vom Filehoster (und teste ob Limit erreicht)
 			grabber.getRequestsWithComments(gitConfig.get());
 		} catch (Exception e) {
@@ -174,14 +199,13 @@ public class RefactoringController {
 		try {
 			// Hole Issues von der SonarCube-API
 			allIssues = sonarCubeGrabber.getIssues(gitConfig.get().getSonarCubeProjectKey());
-			
-			// Pulle Repo zum Arbeiten
-			dataGetter.pullGithubRepo(gitConfig.get().getForkGitLink());
-			// TODO: Dynamischer Branch
-			dataGetter.checkoutBranch("master");
 
 			// Gehe alle Issues durch
 			for (Issue issue : allIssues.getIssues()) {
+				// TODO: Dynamischer Branch
+				// Erstelle Branch für das Kommentar-Refactoring
+				String newBranch = "sonarCube_Refactoring_" + issue.getKey();
+				dataGetter.createBranch(gitConfig.get(), "master", newBranch);
 				// Versuche Refactoring auszuführen
 				String commitMessage = refactoring.pickRefactoring(issue, gitConfig.get());
 
@@ -195,7 +219,7 @@ public class RefactoringController {
 					allRefactoredIssues.add(savedIssue);
 				}
 			}
-			
+
 			// Pushe Änderungen + erstelle Request
 			/*
 			 * dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
@@ -203,11 +227,39 @@ public class RefactoringController {
 			 * // Erstelle PullRequest grabber.makeCreateRequestWithSonarQube(issue,
 			 * gitConfig.get());
 			 */
-			
+
 			return new ResponseEntity<List<RefactoredIssue>>(allRefactoredIssues, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	/**
+	 * Diese Methode führt Refactorings anhand von Kommentaren in Pull-Requests aus.
+	 * 
+	 * @param configID
+	 * @return allRequests
+	 */
+	@RequestMapping(value = "/testBranching/{configID}", method = RequestMethod.GET, produces = "application/json")
+	@ApiOperation(value = "Testroute")
+	public ResponseEntity<?> testBranching(@PathVariable Long configID) {
+
+		// Hole Git-Konfiguration für Bot falls Existiert
+		Optional<GitConfiguration> gitConfig = configRepo.getByID(configID);
+		// Falls nicht existiert
+		if (!gitConfig.isPresent()) {
+			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",
+					HttpStatus.NOT_FOUND);
+		}
+		try {
+			// Hole aktuellste OG-Repo-Daten
+			dataGetter.fetchRemote(gitConfig.get());
+			// dataGetter.switchBranch(gitConfig.get(), "test_PullRequest4");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<String>("Fertig!", HttpStatus.OK);
 	}
 }

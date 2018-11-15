@@ -10,6 +10,7 @@ import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
 import de.BA.refactoringBot.controller.main.BotController;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
@@ -77,10 +78,8 @@ public class ApiGrabber {
 			GithubUpdateRequest updateRequest = githubTranslator.makeUpdateRequest(request, gitConfig);
 			// Aktualisiere Request
 			githubGrabber.updatePullRequest(updateRequest, gitConfig, request.getRequestNumber());
-			// Aktualisiere an Bot gerichteten Request-Kommentar
-			githubGrabber.editToBotComment(githubTranslator.editComment(comment), gitConfig, comment.getCommentID());
 			// Antworte auf an Bot gerichteten Request-Kommentar
-			githubGrabber.responseToBotComment(githubTranslator.createReplyComment(comment, gitConfig), gitConfig,
+			githubGrabber.responseToBotComment(githubTranslator.createReplyComment(comment, gitConfig, null), gitConfig,
 					request.getRequestNumber());
 			break;
 		}
@@ -95,14 +94,18 @@ public class ApiGrabber {
 	 * @param gitConfig
 	 * @throws Exception
 	 */
-	public void makeCreateRequest(BotPullRequest request, GitConfiguration gitConfig) throws Exception {
+	public void makeCreateRequest(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig, String botBranchName)
+			throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
 			// Erstelle Request-Objekt
-			GithubCreateRequest createRequest = githubTranslator.makeCreateRequest(request, gitConfig);
+			GithubCreateRequest createRequest = githubTranslator.makeCreateRequest(request, gitConfig, botBranchName);
 			// Erstelle Request auf Github
-			githubGrabber.createRequest(createRequest, gitConfig);
+			GithubPullRequest newGithubRequest = githubGrabber.createRequest(createRequest, gitConfig);
+			// Antworte auf an Bot gerichteten Request-Kommentar
+			githubGrabber.responseToBotComment(githubTranslator.createReplyComment(comment, gitConfig, newGithubRequest.getHtmlUrl()), gitConfig,
+					request.getRequestNumber());
 			break;
 		}
 	}
@@ -136,7 +139,7 @@ public class ApiGrabber {
 	 * @param botToken
 	 * @param sonarCubeProjectKey
 	 * @param maxAmountRequests
-	 * @param projectRootFolder 
+	 * @param projectRootFolder
 	 * @return gitConfig
 	 * @throws Exception
 	 */
@@ -197,6 +200,23 @@ public class ApiGrabber {
 		case "github":
 			// Versuche Repo (Fork) zu löschen
 			githubGrabber.deleteRepository(gitConfig);
+			// Versuche neuen Fork zu erstellen
+			githubGrabber.createFork(gitConfig);
+			break;
+		}
+	}
+
+	/**
+	 * Diese Methode erstellt den Fork für das in das in der GitConfig angegebene
+	 * Repository.
+	 * 
+	 * @param gitConfig
+	 * @throws Exception
+	 */
+	public void createFork(GitConfiguration gitConfig) throws Exception {
+		// Wähle passenden Service aus
+		switch (gitConfig.getRepoService()) {
+		case "github":
 			// Versuche neuen Fork zu erstellen
 			githubGrabber.createFork(gitConfig);
 			break;

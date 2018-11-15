@@ -43,7 +43,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "_links",
     "user"
 })
-public class PullRequest {
+public class GithubPullRequest {
 
     @JsonProperty("id")
     private Integer id;

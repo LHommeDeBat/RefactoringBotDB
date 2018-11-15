@@ -77,6 +77,7 @@ public class BotController {
 		String date = sdf.format(now);
 
 		// Fülle Objekt
+		refactoredIssue.setCommentServiceID(issue.getKey());
 		refactoredIssue.setRepoName(gitConfig.getRepoName());
 		refactoredIssue.setRepoOwner(gitConfig.getRepoOwner());
 		refactoredIssue.setRepoService(gitConfig.getRepoService());
@@ -88,6 +89,40 @@ public class BotController {
 		refactoredIssue.setSonarCubeProjectKey(gitConfig.getSonarCubeProjectKey());
 		refactoredIssue.setSonarCubeIssueRule(issue.getRule());
 		refactoredIssue.setKindOfRefactoring(getRefactoringName(issue.getRule()));
+
+		return refactoredIssue;
+	}
+	
+	/**
+	 * Diese Methode erstellt das Objekt, welches das durchgeführte Refactoring
+	 * beschreibt.
+	 * 
+	 * @param issue
+	 * @param gitConfig
+	 * @return refactoredIssue
+	 */
+	public RefactoredIssue buildRefactoredIssue(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig) {
+		// Erstelle Objekt
+		RefactoredIssue refactoredIssue = new RefactoredIssue();
+
+		// Erstelle Zeitstempel
+		SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd'T'HH:mm:ss.SSSZ");
+		Date now = new Date();
+		String date = sdf.format(now);
+
+		// Fülle Objekt
+		refactoredIssue.setCommentServiceID(comment.getCommentID().toString());
+		refactoredIssue.setRepoName(gitConfig.getRepoName());
+		refactoredIssue.setRepoOwner(gitConfig.getRepoOwner());
+		refactoredIssue.setRepoService(gitConfig.getRepoService());
+		refactoredIssue.setDateOfRefactoring(date);
+
+		// TODO: dynamischer Branch für SonarCube
+		refactoredIssue.setRepoBranch("master");
+
+		if (gitConfig.getSonarCubeProjectKey() != null) {
+			refactoredIssue.setSonarCubeProjectKey(gitConfig.getSonarCubeProjectKey());
+		}
 
 		return refactoredIssue;
 	}

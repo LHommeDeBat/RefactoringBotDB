@@ -5,21 +5,21 @@ import java.util.List;
 
 public class GithubPullRequests {
 
-	List<PullRequest> allPullRequests = new ArrayList<PullRequest>();
+	List<GithubPullRequest> allPullRequests = new ArrayList<GithubPullRequest>();
 
-	public List<PullRequest> getAllPullRequests() {
+	public List<GithubPullRequest> getAllPullRequests() {
 		return allPullRequests;
 	}
 
-	public void setAllPullRequests(List<PullRequest> allPullRequests) {
+	public void setAllPullRequests(List<GithubPullRequest> allPullRequests) {
 		this.allPullRequests = allPullRequests;
 	}
 	
-	public void addPullRequest(PullRequest pullRequest) {
+	public void addPullRequest(GithubPullRequest pullRequest) {
 		this.allPullRequests.add(pullRequest);
 	}
 	
-	public void removePullRequest(PullRequest pullRequest) {
+	public void removePullRequest(GithubPullRequest pullRequest) {
 		this.allPullRequests.remove(pullRequest);
 	}
 	

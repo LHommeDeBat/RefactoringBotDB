@@ -1,5 +1,6 @@
 package de.BA.refactoringBot.rest;
 
+import java.io.File;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.BA.refactoringBot.api.main.ApiGrabber;
+import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
+import de.BA.refactoringBot.controller.main.GitController;
 import de.BA.refactoringBot.model.configuration.ConfigurationRepository;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import io.swagger.annotations.ApiOperation;
@@ -33,6 +36,10 @@ public class ConfigurationController {
 	ApiGrabber grabber;
 	@Autowired
 	GithubObjectTranslator translator;
+	@Autowired
+	BotConfiguration botConfig;
+	@Autowired
+	GitController gitController;
 
 	/**
 	 * Diese Methode erstellt eine Git-Konfiguration anhand einer Nutzereingabe.
@@ -67,7 +74,14 @@ public class ConfigurationController {
 			GitConfiguration config = grabber.createConfigurationForRepo(repoName, repoOwner, repoService, botUsername,
 					botPassword, botToken, sonarCubeProjectKey, maxAmountRequests, projectRootFolder);
 			// Speichere Konfiguration in DB
-			repo.save(config);
+			GitConfiguration savedConfig = repo.save(config);
+			// Erstelle Ordner für Fork
+			File dir = new File(botConfig.getBotRefactoringDirectory() + savedConfig.getConfigurationId());
+			dir.mkdir();
+			// Erstelle Fork auf Filehoster
+			grabber.createFork(savedConfig);
+			// Hole Fork
+			gitController.initLocalWorkspace(savedConfig);
 			// Gebe Feedback an Nutzer zurück
 			return new ResponseEntity<GitConfiguration>(config, HttpStatus.CREATED);
 		} catch (Exception e) {

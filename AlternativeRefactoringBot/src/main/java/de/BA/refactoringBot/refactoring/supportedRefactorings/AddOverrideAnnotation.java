@@ -49,7 +49,7 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 
 		// Lese Datei aus
 		FileInputStream in = new FileInputStream(
-				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
+				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + gitConfig.getConfigurationId() + "/" + path);
 		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
 
 		// Besuche Codezeile zum Refactoren

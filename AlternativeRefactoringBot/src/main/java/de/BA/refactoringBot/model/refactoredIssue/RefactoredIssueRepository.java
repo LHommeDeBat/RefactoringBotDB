@@ -1,5 +1,7 @@
 package de.BA.refactoringBot.model.refactoredIssue;
 
+import java.util.Optional;
+
 import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.Query;
@@ -23,5 +25,9 @@ public interface RefactoredIssueRepository extends CrudRepository<RefactoredIssu
 	@Query("SELECT a FROM RefactoredIssue a WHERE a.repoService=:repoService and a.repoOwner=:repoOwner")
 	public Iterable<RefactoredIssue> getAllUserIssues(@Param("repoService") String repoService,
 			@Param("repoOwner") String repoOwner);
+	
+	@Query("SELECT a FROM RefactoredIssue a WHERE a.repoService=:repoService and a.commentServiceID=:commentServiceID")
+	public Optional<RefactoredIssue> refactoredComment(@Param("repoService") String repoService,
+			@Param("commentServiceID") String commentServiceID);
 
 }

@@ -12,10 +12,9 @@ import de.BA.refactoringBot.api.github.GithubDataGrabber;
 import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
-import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequest;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
-import de.BA.refactoringBot.model.githubModels.pullRequestComment.EditComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComments;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.ReplyComment;
@@ -45,13 +44,14 @@ public class GithubObjectTranslator {
 	 * 
 	 * @param repo
 	 * @param repoService
-	 * @param sonarCubeProjectKey 
-	 * @param maxAmountRequests 
-	 * @param projectRootFolder 
+	 * @param sonarCubeProjectKey
+	 * @param maxAmountRequests
+	 * @param projectRootFolder
 	 * @return
 	 */
 	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername,
-			String botPassword, String botToken, String repoService, String sonarCubeProjectKey, Integer maxAmountRequests, String projectRootFolder) {
+			String botPassword, String botToken, String repoService, String sonarCubeProjectKey,
+			Integer maxAmountRequests, String projectRootFolder) {
 		// Erstelle Konfiguration
 		GitConfiguration config = new GitConfiguration();
 
@@ -88,7 +88,7 @@ public class GithubObjectTranslator {
 		BotPullRequests translatedRequests = new BotPullRequests();
 
 		// Gehe alle Github-Requests durch
-		for (PullRequest githubRequest : githubRequests.getAllPullRequests()) {
+		for (GithubPullRequest githubRequest : githubRequests.getAllPullRequests()) {
 			// Erstelle für jeden ein PullRequest
 			BotPullRequest pullRequest = new BotPullRequest();
 
@@ -174,7 +174,7 @@ public class GithubObjectTranslator {
 		String date = sdf.format(now);
 
 		// Fülle Request mit Daten
-		sendRequest.setTitle("Bot Pull-Request");
+		sendRequest.setTitle("Bot-Request");
 		sendRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " aktualisiert.");
 		sendRequest.setMaintainer_can_modify(true);
 
@@ -189,7 +189,8 @@ public class GithubObjectTranslator {
 	 * @param gitConfig
 	 * @return createRequest
 	 */
-	public GithubCreateRequest makeCreateRequest(BotPullRequest refactoredRequest, GitConfiguration gitConfig) {
+	public GithubCreateRequest makeCreateRequest(BotPullRequest refactoredRequest, GitConfiguration gitConfig,
+			String botBranchName) {
 		// Erstelle Request
 		GithubCreateRequest createRequest = new GithubCreateRequest();
 
@@ -201,14 +202,14 @@ public class GithubObjectTranslator {
 		// Fülle Request mit Daten
 		createRequest.setTitle("Bot Pull-Request Refactoring für PullRequest #" + refactoredRequest.getRequestNumber());
 		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " erstellt.");
-		createRequest.setHead(gitConfig.getBotName() + ":" + refactoredRequest.getBranchName());
+		createRequest.setHead(gitConfig.getBotName() + ":" + botBranchName);
 		createRequest.setBase(refactoredRequest.getBranchName());
 		createRequest.setMaintainer_can_modify(true);
 
 		// Gebe Request zurück
 		return createRequest;
 	}
-	
+
 	/**
 	 * Diese Methode erstellt einen Pull-Request im Github-Format damit der Bot
 	 * diesen Pull-Request auf Github erstellen kann.
@@ -275,7 +276,8 @@ public class GithubObjectTranslator {
 	 * @param replyTo
 	 * @return comment
 	 */
-	public ReplyComment createReplyComment(BotPullRequestComment replyTo, GitConfiguration gitConfig) {
+	public ReplyComment createReplyComment(BotPullRequestComment replyTo, GitConfiguration gitConfig,
+			String newRequestURL) {
 		// Erstelle Kommentar
 		ReplyComment comment = new ReplyComment();
 		// Fülle mit Daten
@@ -287,29 +289,17 @@ public class GithubObjectTranslator {
 		String date = sdf.format(now);
 
 		// Erstelle Antwort
-		comment.setBody("Refactored von " + gitConfig.getBotName() + " am " + date);
+		if (newRequestURL != null) {
+			// Falls neuer Request erstellt wurde auf Kommentar
+			comment.setBody(
+					"Refactored von " + gitConfig.getBotName() + " am " + date + ". Siehe im Request " + newRequestURL + ".");
+		} else {
+			// Falls Request nur aktualisiert wurde
+			comment.setBody("Refactored von " + gitConfig.getBotName() + " am " + date + ".");
+		}
 
 		// Gebe Kommentar zurück
 		return comment;
 	}
 
-	/**
-	 * Diese Methode erstellt einen bearbeiteten Kommentar welcher genutzt wird um
-	 * einen an den Bot gerichteten Kommentar nach Abarbeitung der Aufgabe als
-	 * bearbeitet zu markieren.
-	 * 
-	 * @param toEdit
-	 * @return
-	 */
-	public EditComment editComment(BotPullRequestComment toEdit) {
-		// Erstelle EditComment
-		EditComment comment = new EditComment();
-
-		// Aktualisiere Kommentar
-		String editedBody = "DONE " + toEdit.getCommentBody();
-		comment.setBody(editedBody);
-
-		// Gebe Kommentar zurück
-		return comment;
-	}
 }

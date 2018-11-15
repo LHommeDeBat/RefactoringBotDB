@@ -14,6 +14,7 @@ public class RefactoredIssue {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long issueId;
 	
+	private String commentServiceID;
 	private String repoName;
 	private String repoOwner;
 	private String repoService;
@@ -89,6 +90,14 @@ public class RefactoredIssue {
 
 	public void setRepoBranch(String repoBranch) {
 		this.repoBranch = repoBranch;
+	}
+
+	public String getCommentServiceID() {
+		return commentServiceID;
+	}
+
+	public void setCommentServiceID(String commentServiceID) {
+		this.commentServiceID = commentServiceID;
 	}
 	
 }

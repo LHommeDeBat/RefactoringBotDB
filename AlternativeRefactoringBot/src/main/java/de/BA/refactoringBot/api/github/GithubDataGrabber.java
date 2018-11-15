@@ -22,10 +22,9 @@ import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.fork.GithubFork;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
-import de.BA.refactoringBot.model.githubModels.pullRequest.PullRequest;
+import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
-import de.BA.refactoringBot.model.githubModels.pullRequestComment.EditComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComments;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.ReplyComment;
@@ -164,8 +163,8 @@ public class GithubDataGrabber {
 
 		// Versuche JSON in Objekte umzuwandeln
 		try {
-			List<PullRequest> requestList = mapper.readValue(json,
-					mapper.getTypeFactory().constructCollectionType(List.class, PullRequest.class));
+			List<GithubPullRequest> requestList = mapper.readValue(json,
+					mapper.getTypeFactory().constructCollectionType(List.class, GithubPullRequest.class));
 			allRequests.setAllPullRequests(requestList);
 			return allRequests;
 		} catch (IOException e) {
@@ -265,49 +264,6 @@ public class GithubDataGrabber {
 	 * @param requestNumber
 	 * @throws Exception 
 	 */
-	public void editToBotComment(EditComment comment, GitConfiguration gitConfig, Integer commentNumber)
-			throws Exception {
-		// Baue URI aus Konfiguration
-		URI configUri = null;
-		try {
-			configUri = new URI(gitConfig.getRepoApiLink());
-		} catch (URISyntaxException u) {
-			throw new Exception("Konnte URI aus Konfiguration nicht generieren!");
-		}
-
-		// Baue URI
-		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
-				.host(configUri.getHost()).path(configUri.getPath() + "/pulls/comments/" + commentNumber);
-
-		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
-
-		URI pullsUri = apiUriBuilder.build().encode().toUri();
-
-		// Header-Umweg für PATCH-Requests
-		HttpHeaders headers = new HttpHeaders();
-		MediaType mediaType = new MediaType("application", "merge-patch+json");
-		headers.setContentType(mediaType);
-
-		// Erstellen des REST-Template mit PATCH-Umweg
-		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-		RestTemplate rest = new RestTemplate(requestFactory);
-
-		// Sende Anfrage an GitHub-API und hole Json
-		try {
-			rest.exchange(pullsUri, HttpMethod.PATCH, new HttpEntity<EditComment>(comment), String.class);
-		} catch (RestClientException e) {
-			throw new Exception("Konnte Kommentar auf Github nicht bearbeiten!");
-		}
-	}
-
-	/**
-	 * Diese Methode antwortet den an den Bot gerichteten Kommentar.
-	 * 
-	 * @param comment
-	 * @param gitConfig
-	 * @param requestNumber
-	 * @throws Exception 
-	 */
 	public void responseToBotComment(ReplyComment comment, GitConfiguration gitConfig, Integer requestNumber)
 			throws Exception {
 		// Lese URI aus Konfiguration
@@ -343,7 +299,7 @@ public class GithubDataGrabber {
 	 * @param gitConfig
 	 * @throws Exception
 	 */
-	public void createRequest(GithubCreateRequest request, GitConfiguration gitConfig) throws Exception {
+	public GithubPullRequest createRequest(GithubCreateRequest request, GitConfiguration gitConfig) throws Exception {
 
 		// Lese URI aus Konfiguration
 		URI configUri = null;
@@ -365,7 +321,7 @@ public class GithubDataGrabber {
 
 		// Sende Anfrage an GitHub-API und hole Json
 		try {
-			rest.exchange(pullsUri, HttpMethod.POST, new HttpEntity<GithubCreateRequest>(request), String.class)
+			return rest.exchange(pullsUri, HttpMethod.POST, new HttpEntity<GithubCreateRequest>(request), GithubPullRequest.class)
 					.getBody();
 		} catch (RestClientException r) {
 			throw new Exception("Konnte Pull-Request auf Github nicht erstellen!");

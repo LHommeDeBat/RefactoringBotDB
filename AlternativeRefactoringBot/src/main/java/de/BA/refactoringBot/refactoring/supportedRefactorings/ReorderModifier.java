@@ -52,7 +52,7 @@ public class ReorderModifier extends ModifierVisitor<Void> {
 
 		// Lese Datei aus
 		FileInputStream in = new FileInputStream(
-				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
+				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + gitConfig.getConfigurationId() + "/" + path);
 		CompilationUnit compilationUnit = JavaParser.parse(in);
 
 		// Finde Code in Datei zum Refactoren
