@@ -86,6 +86,13 @@
 			<artifactId>javaparser-core</artifactId>
 			<version>3.6.20</version>
 		</dependency>
+
+		<!-- Apache-Commons-IO -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
+		</dependency>
 	</dependencies>
 
 	<build>

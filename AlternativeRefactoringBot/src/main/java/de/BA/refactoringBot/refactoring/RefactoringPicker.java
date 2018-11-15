@@ -45,6 +45,7 @@ public class RefactoringPicker {
 				return null;
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new Exception("Etwas ist beim Refactoring schiefgelaufen!");
 		}
 	}

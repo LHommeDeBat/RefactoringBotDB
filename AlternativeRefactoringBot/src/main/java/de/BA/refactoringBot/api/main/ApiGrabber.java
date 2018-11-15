@@ -116,14 +116,15 @@ public class ApiGrabber {
 	 * 
 	 * @param request
 	 * @param gitConfig
+	 * @param newBranch 
 	 * @throws Exception
 	 */
-	public void makeCreateRequestWithSonarQube(Issue issue, GitConfiguration gitConfig) throws Exception {
+	public void makeCreateRequestWithSonarQube(Issue issue, GitConfiguration gitConfig, String newBranch) throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
 			// Erstelle Request-Objekt
-			GithubCreateRequest createRequest = githubTranslator.makeCreateRequestWithSonarQube(issue, gitConfig);
+			GithubCreateRequest createRequest = githubTranslator.makeCreateRequestWithSonarQube(issue, gitConfig, newBranch);
 			// Erstelle Request auf Github
 			githubGrabber.createRequest(createRequest, gitConfig);
 			break;

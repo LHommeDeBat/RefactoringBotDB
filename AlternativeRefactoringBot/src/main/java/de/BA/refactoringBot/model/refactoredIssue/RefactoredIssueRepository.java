@@ -29,5 +29,8 @@ public interface RefactoredIssueRepository extends CrudRepository<RefactoredIssu
 	@Query("SELECT a FROM RefactoredIssue a WHERE a.repoService=:repoService and a.commentServiceID=:commentServiceID")
 	public Optional<RefactoredIssue> refactoredComment(@Param("repoService") String repoService,
 			@Param("commentServiceID") String commentServiceID);
+	
+	@Query("SELECT a FROM RefactoredIssue a WHERE a.commentServiceID=:commentServiceID")
+	public Optional<RefactoredIssue> refactoredSonarCube(@Param("commentServiceID") String commentServiceID);
 
 }

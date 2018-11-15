@@ -51,19 +51,16 @@ public class ReorderModifier extends ModifierVisitor<Void> {
 		String path = component.substring(project.length() + 1, component.length());
 
 		// Lese Datei aus
-		FileInputStream in = new FileInputStream(
-				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + gitConfig.getConfigurationId() + "/" + path);
+		FileInputStream in = new FileInputStream(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()
+				+ "/" + gitConfig.getProjectRootFolder() + "/" + path);
 		CompilationUnit compilationUnit = JavaParser.parse(in);
 
 		// Finde Code in Datei zum Refactoren
 		visit(compilationUnit, null);
 
-		// TODO: Entferne Ausgabe
-		System.out.println(compilationUnit.toString());
-
 		// Schreibe Änderungen in Datei
-		PrintWriter out = new PrintWriter(
-				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
+		PrintWriter out = new PrintWriter(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/"
+				+ gitConfig.getProjectRootFolder() + "/" + path);
 		out.println(compilationUnit.toString());
 		out.close();
 

@@ -215,9 +215,10 @@ public class GithubObjectTranslator {
 	 * diesen Pull-Request auf Github erstellen kann.
 	 * 
 	 * @param gitConfig
+	 * @param newBranch 
 	 * @return createRequest
 	 */
-	public GithubCreateRequest makeCreateRequestWithSonarQube(Issue issue, GitConfiguration gitConfig) {
+	public GithubCreateRequest makeCreateRequestWithSonarQube(Issue issue, GitConfiguration gitConfig, String newBranch) {
 		// Erstelle Request
 		GithubCreateRequest createRequest = new GithubCreateRequest();
 
@@ -229,8 +230,8 @@ public class GithubObjectTranslator {
 		// Fülle Request mit Daten
 		// TODO: Dynamische Branches
 		createRequest.setTitle("Bot Pull-Request Refactoring mit SonarCube");
-		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " erstellt.");
-		createRequest.setHead(gitConfig.getBotName() + ":master");
+		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " für den SonarCube Issue '" + issue.getKey() + " 'erstellt.");
+		createRequest.setHead(gitConfig.getBotName() + ":" + newBranch);
 		createRequest.setBase("master");
 		createRequest.setMaintainer_can_modify(true);
 

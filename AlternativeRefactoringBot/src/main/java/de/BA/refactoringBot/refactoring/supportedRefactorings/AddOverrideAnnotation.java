@@ -48,19 +48,16 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 		line = issue.getLine();
 
 		// Lese Datei aus
-		FileInputStream in = new FileInputStream(
-				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + gitConfig.getConfigurationId() + "/" + path);
+		FileInputStream in = new FileInputStream(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()
+				+ "/" + gitConfig.getProjectRootFolder() + "/" + path);
 		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
 
 		// Besuche Codezeile zum Refactoren
 		visit(compilationUnit, null);
 
-		// TODO: Entferne Ausgabe
-		System.out.println(LexicalPreservingPrinter.print(compilationUnit));
-
 		// Schreibe Änderungen in Datei
-		PrintWriter out = new PrintWriter(
-				botConfig.getBotRefactoringDirectory() + gitConfig.getProjectRootFolder() + "/" + path);
+		PrintWriter out = new PrintWriter(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/"
+				+ gitConfig.getProjectRootFolder() + "/" + path);
 		out.println(LexicalPreservingPrinter.print(compilationUnit));
 		out.close();
 

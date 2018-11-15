@@ -3,6 +3,7 @@ package de.BA.refactoringBot.rest;
 import java.io.File;
 import java.util.Optional;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -102,17 +103,21 @@ public class ConfigurationController {
 	@RequestMapping(value = "/deleteConfig", method = RequestMethod.DELETE, produces = "application/json")
 	@ApiOperation(value = "Lösche Git-Konfiguration")
 	public ResponseEntity<?> deleteConfig(
-			@RequestParam(value = "repoName", required = true, defaultValue = "TestPullRequest") String repoName,
-			@RequestParam(value = "botName", required = true, defaultValue = "LHommeDeBot") String botName,
-			@RequestParam(value = "repoService", required = true, defaultValue = "Github") String repoService,
-			@RequestParam(value = "botToken", required = true, defaultValue = "Token hier Eingaben") String botToken) {
+			@RequestParam(value = "configurationId", required = true) Long configurationId) {
 		// Schaue ob Repository existiert
-		Optional<GitConfiguration> existsConfig = repo.getConfigByFork(repoName, botName);
+		Optional<GitConfiguration> existsConfig = repo.getByID(configurationId);
 		// Falls existiert
 		if (existsConfig.isPresent()) {
 			try {
+				// Lösche Repository beim Filehoster
 				grabber.deleteRepository(existsConfig.get());
+				// Lösche Konfiguration aus der DB
 				repo.delete(existsConfig.get());
+				// Lösche lokalen Ordner
+				File forkFolder = new File(botConfig.getBotRefactoringDirectory()
+						+ existsConfig.get().getConfigurationId());
+                FileUtils.deleteDirectory(forkFolder);
+				
 				return new ResponseEntity<String>("Konfiguration erfolgreich gelöscht!", HttpStatus.OK);
 			} catch (Exception e) {
 				e.printStackTrace();

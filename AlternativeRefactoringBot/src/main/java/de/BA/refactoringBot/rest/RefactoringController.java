@@ -114,8 +114,8 @@ public class RefactoringController {
 							Random rand = new Random();
 							int randomFileNumber = rand.nextInt(100000) + 1;
 							File f = new File(botConfig.getBotRefactoringDirectory()
-									+ gitConfig.get().getConfigurationId() + "/" + gitConfig.get().getProjectRootFolder()
-									+ "/src/text" + randomFileNumber + ".txt");
+									+ gitConfig.get().getConfigurationId() + "/"
+									+ gitConfig.get().getProjectRootFolder() + "/src/text" + randomFileNumber + ".txt");
 							f.getParentFile().mkdirs();
 							f.createNewFile();
 
@@ -131,8 +131,8 @@ public class RefactoringController {
 							Random rand = new Random();
 							int randomFileNumber = rand.nextInt(100000) + 1;
 							File f = new File(botConfig.getBotRefactoringDirectory()
-									+ gitConfig.get().getConfigurationId() + "/" + gitConfig.get().getProjectRootFolder()
-									+ "/src/text" + randomFileNumber + ".txt");
+									+ gitConfig.get().getConfigurationId() + "/"
+									+ gitConfig.get().getProjectRootFolder() + "/src/text" + randomFileNumber + ".txt");
 							f.getParentFile().mkdirs();
 							f.createNewFile();
 
@@ -186,6 +186,8 @@ public class RefactoringController {
 		}
 
 		try {
+			// Hole aktuellste OG-Repo-Daten
+			dataGetter.fetchRemote(gitConfig.get());
 			// Hole Requests vom Filehoster (und teste ob Limit erreicht)
 			grabber.getRequestsWithComments(gitConfig.get());
 		} catch (Exception e) {
@@ -202,31 +204,31 @@ public class RefactoringController {
 
 			// Gehe alle Issues durch
 			for (Issue issue : allIssues.getIssues()) {
-				// TODO: Dynamischer Branch
-				// Erstelle Branch für das Kommentar-Refactoring
-				String newBranch = "sonarCube_Refactoring_" + issue.getKey();
-				dataGetter.createBranch(gitConfig.get(), "master", newBranch);
-				// Versuche Refactoring auszuführen
-				String commitMessage = refactoring.pickRefactoring(issue, gitConfig.get());
+				// Wenn SonarCube Issue nicht schonmal bearbeitet worden ist
+				if (!issueRepo.refactoredSonarCube(issue.getKey()).isPresent()) {
+					// TODO: Dynamischer Branch
+					// Erstelle Branch für das Kommentar-Refactoring
+					String newBranch = "sonarCube_Refactoring_" + issue.getKey();
+					dataGetter.createBranch(gitConfig.get(), "master", newBranch);
+					// Versuche Refactoring auszuführen
+					String commitMessage = refactoring.pickRefactoring(issue, gitConfig.get());
 
-				// Falls Refactoring für Issue ausgeführt wurde
-				if (commitMessage != null) {
-					// Baue RefactoredIssue-Objekt
-					RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(issue, gitConfig.get());
+					// Falls Refactoring für Issue ausgeführt wurde
+					if (commitMessage != null) {
+						// Baue RefactoredIssue-Objekt
+						RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(issue, gitConfig.get());
 
-					// Speichere den RefactoredIssue in die DB
-					RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
-					allRefactoredIssues.add(savedIssue);
+						// Speichere den RefactoredIssue in die DB
+						RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
+						allRefactoredIssues.add(savedIssue);
+
+						// Pushe Änderungen + erstelle Request
+						dataGetter.pushChanges(gitConfig.get(), commitMessage);
+						// Erstelle PullRequest
+						grabber.makeCreateRequestWithSonarQube(issue, gitConfig.get(), newBranch);
+					}
 				}
 			}
-
-			// Pushe Änderungen + erstelle Request
-			/*
-			 * dataGetter.pushChanges(gitConfig.get(), refactoredIssue.getCommitMessage());
-			 * 
-			 * // Erstelle PullRequest grabber.makeCreateRequestWithSonarQube(issue,
-			 * gitConfig.get());
-			 */
 
 			return new ResponseEntity<List<RefactoredIssue>>(allRefactoredIssues, HttpStatus.OK);
 		} catch (Exception e) {
