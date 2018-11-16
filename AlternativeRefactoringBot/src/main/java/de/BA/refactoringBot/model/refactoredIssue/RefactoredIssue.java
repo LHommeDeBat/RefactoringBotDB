@@ -21,7 +21,6 @@ public class RefactoredIssue {
 	private String dateOfRefactoring;
 	private String sonarCubeProjectKey;
 	private String refactoringOperation;
-	private String repoBranch;
 	
 	public Long getIssueId() {
 		return issueId;
@@ -73,14 +72,6 @@ public class RefactoredIssue {
 	
 	public void setRefactoringOperation(String refactoringOperation) {
 		this.refactoringOperation = refactoringOperation;
-	}
-
-	public String getRepoBranch() {
-		return repoBranch;
-	}
-
-	public void setRepoBranch(String repoBranch) {
-		this.repoBranch = repoBranch;
 	}
 
 	public String getCommentServiceID() {

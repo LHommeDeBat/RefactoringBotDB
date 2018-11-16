@@ -82,10 +82,6 @@ public class BotController {
 		refactoredIssue.setRepoOwner(gitConfig.getRepoOwner());
 		refactoredIssue.setRepoService(gitConfig.getRepoService());
 		refactoredIssue.setDateOfRefactoring(date);
-
-		// TODO: dynamischer Branch für SonarCube
-		refactoredIssue.setRepoBranch("master");
-
 		refactoredIssue.setSonarCubeProjectKey(gitConfig.getSonarCubeProjectKey());
 		refactoredIssue.setRefactoringOperation(issue.getRefactoringOperation());
 
@@ -115,9 +111,6 @@ public class BotController {
 		refactoredIssue.setRepoOwner(gitConfig.getRepoOwner());
 		refactoredIssue.setRepoService(gitConfig.getRepoService());
 		refactoredIssue.setDateOfRefactoring(date);
-
-		// TODO: dynamischer Branch für SonarCube
-		refactoredIssue.setRepoBranch("master");
 
 		if (gitConfig.getSonarCubeProjectKey() != null) {
 			refactoredIssue.setSonarCubeProjectKey(gitConfig.getSonarCubeProjectKey());
