@@ -19,6 +19,7 @@ import de.BA.refactoringBot.api.sonarCube.SonarCubeDataGrabber;
 import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.controller.main.BotController;
 import de.BA.refactoringBot.controller.main.GitController;
+import de.BA.refactoringBot.controller.main.GrammerController;
 import de.BA.refactoringBot.model.configuration.ConfigurationRepository;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
@@ -58,6 +59,8 @@ public class RefactoringController {
 	BotConfiguration botConfig;
 	@Autowired
 	BotController botController;
+	@Autowired
+	GrammerController grammerController;
 	@Autowired
 	RefactoringPicker refactoring;
 
@@ -99,7 +102,7 @@ public class RefactoringController {
 			// Gehe alle Kommentare eines Requests durch
 			for (BotPullRequestComment comment : request.getAllComments()) {
 				// Falls Kommentar für Bot bestimmt und nicht schon Refactored wurde
-				if (botController.checkIfCommentForBot(comment) && !issueRepo
+				if (grammerController.checkComment(comment.getCommentBody()) && !issueRepo
 						.refactoredComment(gitConfig.get().getRepoService(), comment.getCommentID().toString())
 						.isPresent()) {
 					// Versuche zu Pullen
