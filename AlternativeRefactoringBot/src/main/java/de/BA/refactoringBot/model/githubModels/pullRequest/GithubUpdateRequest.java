@@ -2,17 +2,8 @@ package de.BA.refactoringBot.model.githubModels.pullRequest;
 
 public class GithubUpdateRequest {
 
-	private String title;
 	private String body;
 	private boolean maintainer_can_modify;
-	
-	public String getTitle() {
-		return title;
-	}
-	
-	public void setTitle(String title) {
-		this.title = title;
-	}
 	
 	public String getBody() {
 		return body;

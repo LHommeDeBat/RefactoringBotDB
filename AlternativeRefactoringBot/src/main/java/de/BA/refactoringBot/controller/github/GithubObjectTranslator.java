@@ -174,7 +174,6 @@ public class GithubObjectTranslator {
 		String date = sdf.format(now);
 
 		// Fülle Request mit Daten
-		sendRequest.setTitle("Bot-Request");
 		sendRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " aktualisiert.");
 		sendRequest.setMaintainer_can_modify(true);
 
