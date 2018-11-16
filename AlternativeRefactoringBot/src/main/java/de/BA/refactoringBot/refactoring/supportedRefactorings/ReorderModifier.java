@@ -16,8 +16,8 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 
 import de.BA.refactoringBot.configuration.BotConfiguration;
+import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
-import de.BA.refactoringBot.model.sonarQube.Issue;
 
 /**
  * This class is used to execute the reorder modifier refactoring.
@@ -44,23 +44,21 @@ public class ReorderModifier extends ModifierVisitor<Void> {
 	 * @return commitMessage
 	 * @throws FileNotFoundException
 	 */
-	public String performRefactoring(Issue issue, GitConfiguration gitConfig) throws FileNotFoundException {
+	public String performRefactoring(BotIssue issue, GitConfiguration gitConfig) throws FileNotFoundException {
 		// Bereite Refactoringdaten vor
-		String project = issue.getProject();
-		String component = issue.getComponent();
-		String path = component.substring(project.length() + 1, component.length());
+		String path = issue.getFilePath();
 
 		// Lese Datei aus
-		FileInputStream in = new FileInputStream(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()
-				+ "/" + gitConfig.getProjectRootFolder() + "/" + path);
+		FileInputStream in = new FileInputStream(
+				botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + path);
 		CompilationUnit compilationUnit = JavaParser.parse(in);
 
 		// Finde Code in Datei zum Refactoren
 		visit(compilationUnit, null);
 
 		// Schreibe Änderungen in Datei
-		PrintWriter out = new PrintWriter(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/"
-				+ gitConfig.getProjectRootFolder() + "/" + path);
+		PrintWriter out = new PrintWriter(
+				botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + path);
 		out.println(compilationUnit.toString());
 		out.close();
 

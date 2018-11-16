@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import de.BA.refactoringBot.api.github.GithubDataGrabber;
 import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
 import de.BA.refactoringBot.controller.main.BotController;
+import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequest;
@@ -16,7 +17,6 @@ import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
-import de.BA.refactoringBot.model.sonarQube.Issue;
 
 /**
  * Diese Klasse leitet alle Anfragen an die passenden APIs weiter.
@@ -119,7 +119,7 @@ public class ApiGrabber {
 	 * @param newBranch 
 	 * @throws Exception
 	 */
-	public void makeCreateRequestWithSonarQube(Issue issue, GitConfiguration gitConfig, String newBranch) throws Exception {
+	public void makeCreateRequestWithSonarQube(BotIssue issue, GitConfiguration gitConfig, String newBranch) throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":

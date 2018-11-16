@@ -14,8 +14,8 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 
 import de.BA.refactoringBot.configuration.BotConfiguration;
+import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
-import de.BA.refactoringBot.model.sonarQube.Issue;
 
 /**
  * This class is used for executing the add override annotation refactoring.
@@ -40,24 +40,22 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 	 * @return commitMessage
 	 * @throws FileNotFoundException
 	 */
-	public String performRefactoring(Issue issue, GitConfiguration gitConfig) throws FileNotFoundException {
+	public String performRefactoring(BotIssue issue, GitConfiguration gitConfig) throws FileNotFoundException {
 		// Bereite Refactoringdaten vor
-		String project = issue.getProject();
-		String component = issue.getComponent();
-		String path = component.substring(project.length() + 1, component.length());
+		String path = issue.getFilePath();
 		line = issue.getLine();
 
 		// Lese Datei aus
-		FileInputStream in = new FileInputStream(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()
-				+ "/" + gitConfig.getProjectRootFolder() + "/" + path);
+		FileInputStream in = new FileInputStream(
+				botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + path);
 		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
 
 		// Besuche Codezeile zum Refactoren
 		visit(compilationUnit, null);
 
 		// Schreibe Änderungen in Datei
-		PrintWriter out = new PrintWriter(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/"
-				+ gitConfig.getProjectRootFolder() + "/" + path);
+		PrintWriter out = new PrintWriter(
+				botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + path);
 		out.println(LexicalPreservingPrinter.print(compilationUnit));
 		out.close();
 

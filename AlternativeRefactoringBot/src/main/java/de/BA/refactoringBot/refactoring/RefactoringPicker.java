@@ -3,8 +3,8 @@ package de.BA.refactoringBot.refactoring;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
-import de.BA.refactoringBot.model.sonarQube.Issue;
 import de.BA.refactoringBot.refactoring.supportedRefactorings.AddOverrideAnnotation;
 import de.BA.refactoringBot.refactoring.supportedRefactorings.ReorderModifier;
 
@@ -32,14 +32,14 @@ public class RefactoringPicker {
 	 * @return commitMessage
 	 * @throws Exception 
 	 */
-	public String pickRefactoring(Issue issue, GitConfiguration gitConfig) throws Exception {
+	public String pickRefactoring(BotIssue issue, GitConfiguration gitConfig) throws Exception {
 	
-		// Wähle Refactoring nach SonarCube-Rule
+		// Wähle Refactoring nach Operation
 		try {
-			switch (issue.getRule()) {
-			case "squid:S1161":
+			switch (issue.getRefactoringOperation()) {
+			case "Add Override Annotation":
 				return addOverride.performRefactoring(issue, gitConfig);
-			case "squid:ModifiersOrderCheck":
+			case "Reorder Modifier":
 				return reorderModifier.performRefactoring(issue, gitConfig);
 			default:
 				return null;

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import de.BA.refactoringBot.api.github.GithubDataGrabber;
 import de.BA.refactoringBot.configuration.BotConfiguration;
+import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequest;
@@ -22,7 +23,6 @@ import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComments;
-import de.BA.refactoringBot.model.sonarQube.Issue;
 
 /**
  * Diese Klasse ist dafür zuständig, GitHub Objekte in eigene Objekte
@@ -218,7 +218,7 @@ public class GithubObjectTranslator {
 	 * @param newBranch 
 	 * @return createRequest
 	 */
-	public GithubCreateRequest makeCreateRequestWithSonarQube(Issue issue, GitConfiguration gitConfig, String newBranch) {
+	public GithubCreateRequest makeCreateRequestWithSonarQube(BotIssue issue, GitConfiguration gitConfig, String newBranch) {
 		// Erstelle Request
 		GithubCreateRequest createRequest = new GithubCreateRequest();
 
@@ -230,7 +230,7 @@ public class GithubObjectTranslator {
 		// Fülle Request mit Daten
 		// TODO: Dynamische Branches
 		createRequest.setTitle("Bot Pull-Request Refactoring mit SonarCube");
-		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " für den SonarCube Issue '" + issue.getKey() + " 'erstellt.");
+		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " für den SonarCube Issue '" + issue.getCommentServiceID() + " 'erstellt.");
 		createRequest.setHead(gitConfig.getBotName() + ":" + newBranch);
 		createRequest.setBase("master");
 		createRequest.setMaintainer_can_modify(true);

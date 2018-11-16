@@ -38,7 +38,7 @@ public class SonarCubeIssues {
     @JsonProperty("debtTotal")
     private Integer debtTotal;
     @JsonProperty("issues")
-    private List<Issue> issues = null;
+    private List<SonarIssue> issues = null;
     @JsonProperty("components")
     private List<Component> components = null;
     @JsonProperty("facets")
@@ -107,12 +107,12 @@ public class SonarCubeIssues {
     }
 
     @JsonProperty("issues")
-    public List<Issue> getIssues() {
+    public List<SonarIssue> getIssues() {
         return issues;
     }
 
     @JsonProperty("issues")
-    public void setIssues(List<Issue> issues) {
+    public void setIssues(List<SonarIssue> issues) {
         this.issues = issues;
     }
 

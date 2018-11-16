@@ -36,7 +36,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "resolution",
     "closeDate"
 })
-public class Issue {
+public class SonarIssue {
 
     @JsonProperty("key")
     private String key;

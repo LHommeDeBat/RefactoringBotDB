@@ -5,12 +5,12 @@ import java.util.Date;
 
 import org.springframework.stereotype.Component;
 
+import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
-import de.BA.refactoringBot.model.sonarQube.Issue;
 
 @Component
 public class BotController {
@@ -67,7 +67,7 @@ public class BotController {
 	 * @param gitConfig
 	 * @return refactoredIssue
 	 */
-	public RefactoredIssue buildRefactoredIssue(Issue issue, GitConfiguration gitConfig) {
+	public RefactoredIssue buildRefactoredIssue(BotIssue issue, GitConfiguration gitConfig) {
 		// Erstelle Objekt
 		RefactoredIssue refactoredIssue = new RefactoredIssue();
 
@@ -77,7 +77,7 @@ public class BotController {
 		String date = sdf.format(now);
 
 		// Fülle Objekt
-		refactoredIssue.setCommentServiceID(issue.getKey());
+		refactoredIssue.setCommentServiceID(issue.getCommentServiceID());
 		refactoredIssue.setRepoName(gitConfig.getRepoName());
 		refactoredIssue.setRepoOwner(gitConfig.getRepoOwner());
 		refactoredIssue.setRepoService(gitConfig.getRepoService());
@@ -87,8 +87,7 @@ public class BotController {
 		refactoredIssue.setRepoBranch("master");
 
 		refactoredIssue.setSonarCubeProjectKey(gitConfig.getSonarCubeProjectKey());
-		refactoredIssue.setSonarCubeIssueRule(issue.getRule());
-		refactoredIssue.setKindOfRefactoring(getRefactoringName(issue.getRule()));
+		refactoredIssue.setRefactoringOperation(issue.getRefactoringOperation());
 
 		return refactoredIssue;
 	}
@@ -125,23 +124,5 @@ public class BotController {
 		}
 
 		return refactoredIssue;
-	}
-
-	/**
-	 * Diese Methode erstellt anhand der SonarCube-Regel einen lesbaren
-	 * Refactoring-Text und gibt ihn zurück.
-	 * 
-	 * @param sonarCubeRule
-	 * @return ruleAsText
-	 */
-	private String getRefactoringName(String sonarCubeRule) {
-		switch (sonarCubeRule) {
-		case "squid:S1161":
-			return "Add Override Annotation";
-		case "squid:ModifiersOrderCheck":
-			return "Reorder Modifier";
-		default:
-			return "Unknown Refactoring";
-		}
 	}
 }

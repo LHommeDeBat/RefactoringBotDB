@@ -1,10 +1,8 @@
 package de.BA.refactoringBot.rest;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +18,8 @@ import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.controller.main.BotController;
 import de.BA.refactoringBot.controller.main.GitController;
 import de.BA.refactoringBot.controller.main.GrammerController;
+import de.BA.refactoringBot.controller.sonarCube.ObjectTranslator;
+import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.ConfigurationRepository;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
@@ -27,7 +27,7 @@ import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssueRepository;
-import de.BA.refactoringBot.model.sonarQube.Issue;
+import de.BA.refactoringBot.model.sonarQube.SonarIssue;
 import de.BA.refactoringBot.model.sonarQube.SonarCubeIssues;
 import de.BA.refactoringBot.refactoring.RefactoringPicker;
 import io.swagger.annotations.ApiOperation;
@@ -60,9 +60,11 @@ public class RefactoringController {
 	@Autowired
 	BotController botController;
 	@Autowired
-	GrammerController grammerController;
+	GrammerController grammarController;
 	@Autowired
 	RefactoringPicker refactoring;
+	@Autowired
+	ObjectTranslator sonarTranslator;
 
 	/**
 	 * Diese Methode führt Refactorings anhand von Kommentaren in Pull-Requests aus.
@@ -102,9 +104,11 @@ public class RefactoringController {
 			// Gehe alle Kommentare eines Requests durch
 			for (BotPullRequestComment comment : request.getAllComments()) {
 				// Falls Kommentar für Bot bestimmt und nicht schon Refactored wurde
-				if (grammerController.checkComment(comment.getCommentBody()) && !issueRepo
+				if (grammarController.checkComment(comment.getCommentBody()) && !issueRepo
 						.refactoredComment(gitConfig.get().getRepoService(), comment.getCommentID().toString())
 						.isPresent()) {
+					// Erstelle Issue
+					BotIssue botIssue = grammarController.createIssueFromComment(comment);
 					// Versuche zu Pullen
 					try {
 						// Falls Request nicht vom Bot erstellt wurde
@@ -113,42 +117,46 @@ public class RefactoringController {
 							String newBranch = gitConfig.get().getRepoService() + "_Refactoring_"
 									+ comment.getCommentID().toString();
 							dataGetter.createBranch(gitConfig.get(), request.getBranchName(), newBranch);
-							// TODO: Später durch Refactoring ersetzen - Erstelle File
-							Random rand = new Random();
-							int randomFileNumber = rand.nextInt(100000) + 1;
-							File f = new File(botConfig.getBotRefactoringDirectory()
-									+ gitConfig.get().getConfigurationId() + "/"
-									+ gitConfig.get().getProjectRootFolder() + "/src/text" + randomFileNumber + ".txt");
-							f.getParentFile().mkdirs();
-							f.createNewFile();
 
-							// Pushe Änderungen TODO: dynamische Commitnachricht
-							dataGetter.pushChanges(gitConfig.get(), "Bot hat eine Datei hinzugefügt");
+							// Versuche Refactoring auszuführen
+							String commitMessage = refactoring.pickRefactoring(botIssue, gitConfig.get());
 
-							// Aktuallisiere Pullrequest + Antworte auf Kommentar
-							grabber.makeCreateRequest(request, comment, gitConfig.get(), newBranch);
+							// Falls erfolgreich
+							if (commitMessage != null) {
+								// Baue RefactoredIssue-Objekt
+								RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(botIssue,
+										gitConfig.get());
+
+								// Speichere den RefactoredIssue in die DB
+								RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
+								allRefactoredIssues.add(savedIssue);
+
+								// Pushe Änderungen + erstelle Request
+								dataGetter.pushChanges(gitConfig.get(), commitMessage);
+								grabber.makeCreateRequest(request, comment, gitConfig.get(), newBranch);
+							}
 						} else {
 							// Wechsle zum Refactoring-Branch
 							dataGetter.switchBranch(gitConfig.get(), request.getBranchName());
-							// TODO: Später durch Refactoring ersetzen - Erstelle File
-							Random rand = new Random();
-							int randomFileNumber = rand.nextInt(100000) + 1;
-							File f = new File(botConfig.getBotRefactoringDirectory()
-									+ gitConfig.get().getConfigurationId() + "/"
-									+ gitConfig.get().getProjectRootFolder() + "/src/text" + randomFileNumber + ".txt");
-							f.getParentFile().mkdirs();
-							f.createNewFile();
 
-							// Pushe Änderungen TODO: dynamische Commitnachricht
-							dataGetter.pushChanges(gitConfig.get(), "Bot hat eine Datei hinzugefügt");
-							grabber.makeUpdateRequest(request, comment, gitConfig.get());
+							// Versuche Refactoring auszuführen
+							String commitMessage = refactoring.pickRefactoring(botIssue, gitConfig.get());
+
+							// Falls erfolgreich
+							if (commitMessage != null) {
+								// Baue RefactoredIssue-Objekt
+								RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(botIssue,
+										gitConfig.get());
+
+								// Speichere den RefactoredIssue in die DB
+								RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
+								allRefactoredIssues.add(savedIssue);
+
+								// Pushe Änderungen + aktualisiere Request
+								dataGetter.pushChanges(gitConfig.get(), commitMessage);
+								grabber.makeUpdateRequest(request, comment, gitConfig.get());
+							}
 						}
-
-						// Baue RefactoredIssue-Objekt
-						RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(request, comment,
-								gitConfig.get());
-						RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
-						allRefactoredIssues.add(savedIssue);
 					} catch (Exception e) {
 						e.printStackTrace();
 						return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -206,20 +214,22 @@ public class RefactoringController {
 			allIssues = sonarCubeGrabber.getIssues(gitConfig.get().getSonarCubeProjectKey());
 
 			// Gehe alle Issues durch
-			for (Issue issue : allIssues.getIssues()) {
+			for (SonarIssue issue : allIssues.getIssues()) {
+				// Übersetze Issue
+				BotIssue botIssue = sonarTranslator.translateSonarIssue(issue, gitConfig.get());
 				// Wenn SonarCube Issue nicht schonmal bearbeitet worden ist
-				if (!issueRepo.refactoredSonarCube(issue.getKey()).isPresent()) {
+				if (!issueRepo.refactoredSonarCube(botIssue.getCommentServiceID()).isPresent()) {
 					// TODO: Dynamischer Branch
 					// Erstelle Branch für das Kommentar-Refactoring
-					String newBranch = "sonarCube_Refactoring_" + issue.getKey();
+					String newBranch = "sonarCube_Refactoring_" + botIssue.getCommentServiceID();
 					dataGetter.createBranch(gitConfig.get(), "master", newBranch);
 					// Versuche Refactoring auszuführen
-					String commitMessage = refactoring.pickRefactoring(issue, gitConfig.get());
+					String commitMessage = refactoring.pickRefactoring(botIssue, gitConfig.get());
 
 					// Falls Refactoring für Issue ausgeführt wurde
 					if (commitMessage != null) {
 						// Baue RefactoredIssue-Objekt
-						RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(issue, gitConfig.get());
+						RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(botIssue, gitConfig.get());
 
 						// Speichere den RefactoredIssue in die DB
 						RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
@@ -228,7 +238,7 @@ public class RefactoringController {
 						// Pushe Änderungen + erstelle Request
 						dataGetter.pushChanges(gitConfig.get(), commitMessage);
 						// Erstelle PullRequest
-						grabber.makeCreateRequestWithSonarQube(issue, gitConfig.get(), newBranch);
+						grabber.makeCreateRequestWithSonarQube(botIssue, gitConfig.get(), newBranch);
 					}
 				}
 			}
