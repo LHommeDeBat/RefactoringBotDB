@@ -1,4 +1,4 @@
-package de.BA.refactoringBot.model.outputModel.myPullRequest;
+package de.BA.refactoringBot.model.outputModel.botPullRequest;
 
 import java.util.ArrayList;
 import java.util.List;

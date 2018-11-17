@@ -11,7 +11,7 @@ import de.BA.refactoringBot.grammar.botGrammar.BotOperationsBaseListener;
 import de.BA.refactoringBot.grammar.botGrammar.BotOperationsLexer;
 import de.BA.refactoringBot.grammar.botGrammar.BotOperationsParser;
 import de.BA.refactoringBot.model.botIssue.BotIssue;
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.outputModel.botPullRequestComment.BotPullRequestComment;
 
 /**
  * This class performs all task that have something to do with the grammar that

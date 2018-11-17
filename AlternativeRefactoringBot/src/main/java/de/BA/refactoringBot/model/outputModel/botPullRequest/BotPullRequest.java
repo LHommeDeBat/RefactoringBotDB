@@ -1,9 +1,9 @@
-package de.BA.refactoringBot.model.outputModel.myPullRequest;
+package de.BA.refactoringBot.model.outputModel.botPullRequest;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.outputModel.botPullRequestComment.BotPullRequestComment;
 
 public class BotPullRequest {
 

@@ -1,4 +1,4 @@
-package de.BA.refactoringBot.model.outputModel.myPullRequestComment;
+package de.BA.refactoringBot.model.outputModel.botPullRequestComment;
 
 import java.util.ArrayList;
 import java.util.List;

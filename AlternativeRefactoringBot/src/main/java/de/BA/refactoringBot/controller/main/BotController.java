@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
 
 import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.outputModel.botPullRequest.BotPullRequest;
+import de.BA.refactoringBot.model.outputModel.botPullRequest.BotPullRequests;
+import de.BA.refactoringBot.model.outputModel.botPullRequestComment.BotPullRequestComment;
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
 
 /**

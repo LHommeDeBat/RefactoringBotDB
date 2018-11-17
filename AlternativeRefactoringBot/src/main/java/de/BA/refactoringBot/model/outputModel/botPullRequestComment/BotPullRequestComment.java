@@ -1,4 +1,4 @@
-package de.BA.refactoringBot.model.outputModel.myPullRequestComment;
+package de.BA.refactoringBot.model.outputModel.botPullRequestComment;
 
 public class BotPullRequestComment {
 

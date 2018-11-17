@@ -19,10 +19,10 @@ import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.GitHubPullRequestComments;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.ReplyComment;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComments;
+import de.BA.refactoringBot.model.outputModel.botPullRequest.BotPullRequest;
+import de.BA.refactoringBot.model.outputModel.botPullRequest.BotPullRequests;
+import de.BA.refactoringBot.model.outputModel.botPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.outputModel.botPullRequestComment.BotPullRequestComments;
 
 /**
  * This class translates all kinds of objects from GitHub to Bot-Objects

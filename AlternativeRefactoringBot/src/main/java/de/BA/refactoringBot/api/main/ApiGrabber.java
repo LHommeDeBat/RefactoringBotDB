@@ -18,9 +18,9 @@ import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
-import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
-import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.outputModel.botPullRequest.BotPullRequest;
+import de.BA.refactoringBot.model.outputModel.botPullRequest.BotPullRequests;
+import de.BA.refactoringBot.model.outputModel.botPullRequestComment.BotPullRequestComment;
 import de.BA.refactoringBot.model.sonarQube.SonarCubeIssues;
 
 /**
