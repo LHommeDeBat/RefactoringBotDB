@@ -13,7 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import de.BA.refactoringBot.model.sonarQube.SonarCubeIssues;
 
 /**
- * Diese Klasse holt verschiedenste Daten von der SonarCube-API.
+ * This class gets all kinds of data from SonarCube.
  * 
  * @author Stefan Basaric
  *
@@ -24,34 +24,34 @@ public class SonarCubeDataGrabber {
 	private final String USER_AGENT = "Mozilla/5.0";
 
 	/**
-	 * Diese Methode holt die SonarCube-Issues eines Projekts.
+	 * This method gets all SonarCubeIssues of a Project.
 	 * 
 	 * @param sonarCubeProjectKey
 	 * @return allIssues
 	 * @throws Exception
 	 */
 	public SonarCubeIssues getIssues(String sonarCubeProjectKey) throws Exception {
-		// Baue URL
-		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https")
-				.host("sonarcloud.io").path("api/issues/search");
-		
+		// Build URI
+		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https").host("sonarcloud.io")
+				.path("api/issues/search");
+
 		apiUriBuilder.queryParam("componentRoots", sonarCubeProjectKey);
 		apiUriBuilder.queryParam("statuses", "OPEN,REOPENED");
 
 		URI sonarCubeURI = apiUriBuilder.build().encode().toUri();
 
-		// Erstelle REST-Template
+		// Create REST-Template
 		RestTemplate rest = new RestTemplate();
-		// Baue Header
+		// Build Header
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("User-Agent", USER_AGENT);
 		HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 
-		// Sende Anfrage an GitHub-API und hole Json
+		// Send request
 		try {
 			return rest.exchange(sonarCubeURI, HttpMethod.GET, entity, SonarCubeIssues.class).getBody();
 		} catch (RestClientException e) {
-			throw new Exception("SonarCube API nicht erreichbar!");
+			throw new Exception("Could not access SonarCube API!");
 		}
 	}
 }

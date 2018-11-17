@@ -32,8 +32,7 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 	BotConfiguration botConfig;
 
 	/**
-	 * Diese Methode führt das Refactoring durch und gibt eine passende
-	 * Git-Commit-Nachricht zurück.
+	 * This method performs the refactoring and returns the a commit message.
 	 * 
 	 * @param issue
 	 * @param gitConfig
@@ -41,41 +40,40 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 	 * @throws FileNotFoundException
 	 */
 	public String performRefactoring(BotIssue issue, GitConfiguration gitConfig) throws FileNotFoundException {
-		// Bereite Refactoringdaten vor
+		// Prepare data
 		String path = issue.getFilePath();
 		line = issue.getLine();
 
-		// Lese Datei aus
+		// Read file
 		FileInputStream in = new FileInputStream(
 				botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + path);
 		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
 
-		// Besuche Codezeile zum Refactoren
+		// Visit place in the code that needs refactoring
 		visit(compilationUnit, null);
 
-		// Schreibe Änderungen in Datei
+		// Save changes to file
 		PrintWriter out = new PrintWriter(
 				botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + path);
 		out.println(LexicalPreservingPrinter.print(compilationUnit));
 		out.close();
 
-		// Gebe passende Commit-Nachricht zurück
+		// Return commit message
 		return "Added override annotation to method " + methodName;
 	}
 
 	/**
-	 * Diese Methode besucht die Methode, welche die Annotation benötigt und fügt
-	 * diese dort hinzu.
+	 * This method adds the annotation to a method at a specific line in the code.
 	 * 
 	 * @param declaration
 	 * @param line
 	 */
 	public void visit(MethodDeclaration declaration, Object arg) {
-		// Falls Methodenzeile = Issuezeile
+		// If method exists at given line
 		if (line == declaration.getName().getBegin().get().line) {
-			// Lese Methodennamen aus
+			// Read method name
 			methodName = declaration.getNameAsString();
-			// Füge Annotation hinzu
+			// Add annotation
 			declaration.addMarkerAnnotation("Override");
 		}
 	}

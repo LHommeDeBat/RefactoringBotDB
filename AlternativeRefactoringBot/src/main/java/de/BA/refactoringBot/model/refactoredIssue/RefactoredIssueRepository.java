@@ -9,9 +9,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 /**
- * Dieses Interface wird genutzt um mit der Datenbank zu kommunizieren. Dabei
- * wird sowohl das vom Spring angebotene CRUD-Repository verwendet als auch
- * klassische SQL-Queries.
+ * This interface is used to communicate with the database. It also implements
+ * Springs CrudRepository for direct access to existing CRUD-Methods.
  * 
  * @author Stefan Basaric
  *
@@ -25,11 +24,11 @@ public interface RefactoredIssueRepository extends CrudRepository<RefactoredIssu
 	@Query("SELECT a FROM RefactoredIssue a WHERE a.repoService=:repoService and a.repoOwner=:repoOwner")
 	public Iterable<RefactoredIssue> getAllUserIssues(@Param("repoService") String repoService,
 			@Param("repoOwner") String repoOwner);
-	
+
 	@Query("SELECT a FROM RefactoredIssue a WHERE a.repoService=:repoService and a.commentServiceID=:commentServiceID")
 	public Optional<RefactoredIssue> refactoredComment(@Param("repoService") String repoService,
 			@Param("commentServiceID") String commentServiceID);
-	
+
 	@Query("SELECT a FROM RefactoredIssue a WHERE a.commentServiceID=:commentServiceID")
 	public Optional<RefactoredIssue> refactoredSonarCube(@Param("commentServiceID") String commentServiceID);
 

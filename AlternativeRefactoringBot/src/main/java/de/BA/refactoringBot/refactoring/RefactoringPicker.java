@@ -9,9 +9,7 @@ import de.BA.refactoringBot.refactoring.supportedRefactorings.AddOverrideAnnotat
 import de.BA.refactoringBot.refactoring.supportedRefactorings.ReorderModifier;
 
 /**
- * Diese Klasse entscheidet welches Refactoring durchgeführt werden muss und
- * wählt dafür die passende Klasse, an dem sie das Refactoring-Issue
- * weiterleitet.
+ * This class checks which refactoring needs to be performed.
  * 
  * @author Stefan Basaric
  *
@@ -25,16 +23,17 @@ public class RefactoringPicker {
 	ReorderModifier reorderModifier;
 
 	/**
-	 * Diese Methode wählt das passende Refactoring anhand des Issue-Objekts von
-	 * Sonarcube aus.
+	 * This method checks which refactoring needs to be performed. It transfers the
+	 * refactoring request to the correct refactoring class and returns a commit
+	 * message.
 	 * 
 	 * @param issue
 	 * @return commitMessage
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public String pickRefactoring(BotIssue issue, GitConfiguration gitConfig) throws Exception {
-	
-		// Wähle Refactoring nach Operation
+
+		// Pick refactoring class
 		try {
 			switch (issue.getRefactoringOperation()) {
 			case "Add Override Annotation":
@@ -46,7 +45,7 @@ public class RefactoringPicker {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new Exception("Etwas ist beim Refactoring schiefgelaufen!");
+			throw new Exception("Something went wrong during the refactoring process!");
 		}
 	}
 }

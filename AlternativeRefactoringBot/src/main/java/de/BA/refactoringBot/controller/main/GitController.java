@@ -2,7 +2,6 @@ package de.BA.refactoringBot.controller.main;
 
 import java.io.File;
 
-import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RemoteAddCommand;
@@ -17,7 +16,7 @@ import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 
 /**
- * Diese Klasse nutzt Git programmatisch mittels JGit.
+ * This class uses git programmicaly with JGIT.
  * 
  * @author Stefan Basaric
  *
@@ -29,29 +28,29 @@ public class GitController {
 	BotConfiguration botConfig;
 
 	/**
-	 * Diese Methode initiiert das lokale Workspace.
+	 * This method initialises the workspace.
 	 * 
 	 * @param gitConfig
 	 * @throws Exception
 	 */
 	public void initLocalWorkspace(GitConfiguration gitConfig) throws Exception {
-		// Klone Fork
+		// Clone fork
 		cloneRepository(gitConfig);
-		// Füge Remote (OG-Repo) zum Fork hinzu
+		// Add remote to fork
 		addRemote(gitConfig);
 	}
 
 	/**
-	 * Diese Methode fügt ein Remote zum Projekt hinzu.
+	 * This method adds an Remote to the fork/bot-repository.
 	 * 
 	 * @param gitConfig
 	 * @throws Exception
 	 */
 	public void addRemote(GitConfiguration gitConfig) throws Exception {
-		// Öffne Arbeitsverzeichnis
-		Git git;
 		try {
-			git = Git.open(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()));
+			// Open git folder
+			Git git = Git.open(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()));
+			// Add Remote as 'upstream'
 			RemoteAddCommand remoteAddCommand = git.remoteAdd();
 			remoteAddCommand.setName("upstream");
 			remoteAddCommand.setUri(new URIish(gitConfig.getRepoGitLink()));
@@ -59,90 +58,68 @@ public class GitController {
 			git.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new Exception(
-					"Konnte Remote " + "'" + gitConfig.getRepoGitLink() + "' nicht erfolgreich hinzufügen!");
+			throw new Exception("Could not add as remote " + "'" + gitConfig.getRepoGitLink() + "' successfully!");
 		}
 	}
 
 	/**
-	 * Diese Methode fetcht die Daten eines Repotes.
+	 * This method fetches data from the 'upstrem' remote.
 	 * 
 	 * @param gitConfig
 	 * @throws Exception
 	 */
 	public void fetchRemote(GitConfiguration gitConfig) throws Exception {
-		// Öffne Arbeitsverzeichnis
 		try {
+			// Open git folder
 			Git git = Git.open(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()));
+			// Fetch data
 			git.fetch().setRemote("upstream").call();
 			git.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new Exception("Konnte Remote 'upstream' nicht erfolgreich fetchen!");
+			throw new Exception("Could not fetch data from 'upstream'!");
 		}
 	}
 
 	/**
-	 * Diese Methode verwirft alle Änderungen seit dem letzten Commit auf dem
-	 * aktuellen Git-Branch.
+	 * This method stashes all changes since the last commit.
 	 * 
 	 * @param gitConfig
 	 * @throws Exception
 	 */
 	public void stashChanges(GitConfiguration gitConfig) throws Exception {
-		// Öffne Arbeitsverzeichnis
 		try {
+			// Open git folder
 			Git git = Git.open(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()));
+			// Stash changes
 			git.stashApply().call();
 			git.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new Exception("Konnte Änderungen nicht stashen!");
+			throw new Exception("Faild to stash changes!");
 		}
 	}
 
 	/**
-	 * Diese Methode klont das gewünschte Repository mittels einer URL.
+	 * This method clones an repository with its git url.
 	 * 
 	 * @param repoURL
 	 * @throws Exception
 	 */
 	public void cloneRepository(GitConfiguration gitConfig) throws Exception {
 		try {
-			// Klone Repo aus der Konfiguration in Arbeitsverzeichnis
+			// Clone repository into git folder
 			Git git = Git.cloneRepository().setURI(gitConfig.getForkGitLink())
 					.setDirectory(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()))
 					.call();
 			git.close();
 		} catch (Exception e) {
-			throw new Exception(
-					"Konnte Repository " + "'" + gitConfig.getForkGitLink() + "' nicht erfolgreich Klonen/Pullen!");
+			throw new Exception("Faild to clone " + "'" + gitConfig.getForkGitLink() + "' successfully!");
 		}
 	}
 
 	/**
-	 * Diese Methode Pullt das gewünschte Repository mittels einer URL.
-	 * 
-	 * @param repoURL
-	 * @throws Exception
-	 */
-	public void pullGithubRepo(String repoURL) throws Exception {
-		try {
-			// Lösche zunächst den Arbeitsordner
-			FileUtils.deleteDirectory(new File(botConfig.getBotRefactoringDirectory()));
-
-			// Klone Repo aus der Konfiguration in Arbeitsverzeichnis
-			Git git = Git.cloneRepository().setURI(repoURL)
-					.setDirectory(new File(botConfig.getBotRefactoringDirectory())).call();
-			git.close();
-		} catch (Exception e) {
-			throw new Exception("Konnte Repository " + "'" + repoURL + "' nicht erfolgreich Klonen/Pullen!");
-		}
-	}
-
-	/**
-	 * Diese Methode wechselt den Branch vom gepullten Repository welches aktuell im
-	 * Arbeitsverzeichnis des Bots ist.
+	 * This method creates a new branch.
 	 * 
 	 * @param gitConfig
 	 * @param branchName
@@ -151,73 +128,70 @@ public class GitController {
 	 * @throws Exception
 	 */
 	public void createBranch(GitConfiguration gitConfig, String branchName, String newBranch) throws Exception {
-		// Branchwechsel nur wenn nicht 'master' da beim Clonen master geholt wird
 		try {
-			// Öffne Arbeitsverzeichnis
+			// Open git folder
 			Git git = Git.open(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()));
-			// Versuche Branch zu erstellen
+			// Try to create new branch
 			@SuppressWarnings("unused")
 			Ref ref = git.checkout().setCreateBranch(true).setName(newBranch)
 					.setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
 					.setStartPoint("upstream/" + branchName).call();
-			// Pulle Daten
+			// Pull data
 			git.pull();
 			git.close();
-			// Falls Branch existiert wechsle zu diesem
+			// If branch already exists
 		} catch (RefAlreadyExistsException r) {
+			// Switch to branch
 			switchBranch(gitConfig, newBranch);
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new Exception("Konnte den Branch mit dem Namen " + "'" + newBranch + "' nicht erstellen!");
+			throw new Exception("Branch with the name " + "'" + newBranch + "' could not be created!");
 		}
 	}
 
 	/**
-	 * Diese Methode wechselt den Branch vom gepullten Repository welches aktuell im
-	 * Arbeitsverzeichnis des Bots ist.
+	 * This method switches the branch.
 	 * 
 	 * @param branchName
 	 * @throws Exception
 	 */
 
-	  public void switchBranch(GitConfiguration gitConfig, String branchName) throws Exception { 
-		  // Branchwechsel nur wenn nicht 'master' da beim Clonen master geholt wird 
-try { 
-	// Öffne Arbeitsverzeichnis 
-	  Git git = Git.open(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId())); 
-	  
-	  // Wechsle auf Branch des PullRequests
-	  @SuppressWarnings("unused") 
-	  Ref ref = git.checkout().setName(branchName).call(); // Pulle Daten git.pull();
-	  git.close(); // Falls Branch nicht existiert, dann erstelle Branch 
-	  } catch (Exception e) { 
-	  e.printStackTrace(); 
-	  throw new Exception("Konnte nicht zu Branch " + "'" + branchName + "' wechseln!"); } }
-	 
+	public void switchBranch(GitConfiguration gitConfig, String branchName) throws Exception {
+		try {
+			// Open git folder
+			Git git = Git.open(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()));
+
+			// Switch branch
+			@SuppressWarnings("unused")
+			Ref ref = git.checkout().setName(branchName).call();
+			git.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new Exception("Could not switch to the branch with the name " + "'" + branchName + "'!");
+		}
+	}
 
 	/**
-	 * Diese Methode pusht alle Änderungen welche im Repository durchgeführt wurden.
-	 * Dabei handelt es sich um das Repository welches aktuell im Arbeitsverzeichnis
-	 * des Bots ist.
+	 * This method performs 'git push' programmically
 	 * 
 	 * @throws Exception
 	 */
 	public void pushChanges(GitConfiguration gitConfig, String commitMessage) throws Exception {
 		try {
-			// Öffne Arbeitsverzeichnis
+			// Open git folder
 			Git git = Git.open(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()));
-			// Führe 'git add .' aus
+			// Perform 'git add .'
 			git.add().addFilepattern(".").call();
-			// Mache einen commit (Aktuell hardgecodete Nachricht)
+			// Perform 'git commit -m'
 			git.commit().setMessage(commitMessage).call();
-			// Pushe mit Bot-Daten
+			// Push with bot credenials
 			git.push()
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(gitConfig.getBotName(), gitConfig.getBotPassword()))
 					.call();
 			git.close();
 		} catch (Exception e) {
-			throw new Exception("Konnte nicht erfolgreich Git-Pushe ausführen!");
+			throw new Exception("Could not successfully perform 'git push'!");
 		}
 	}
 }

@@ -13,8 +13,7 @@ import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssueRepository;
 import io.swagger.annotations.ApiOperation;
 
 /**
- * Diese Klasse bietet ein CRUD-Interface als REST-Schnittstelle für die
- * durchgeführten Refactorings an an.
+ * This class offers an CRUD-Interface as a REST-API for the refactored issues.
  * 
  * @author Stefan Basaric
  *
@@ -27,43 +26,41 @@ public class RefactoredIssuesController {
 	RefactoredIssueRepository repo;
 
 	/**
-	 * Diese Methode holt alle bearbeiteten Issues aus der DB.
+	 * This method returns all refactored issues from the database.
 	 * 
 	 * @return allIssues
 	 */
 	@RequestMapping(value = "/getAllIssues", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "Lese alle vom Bot bearbeiteten Issues aus")
+	@ApiOperation(value = "Get all refactored issues.")
 	public ResponseEntity<?> getAllIssues() {
-		// Hole alle Issues und gebe sie zurück
 		Iterable<RefactoredIssue> allIssues = repo.findAll();
 		return new ResponseEntity<Iterable<RefactoredIssue>>(allIssues, HttpStatus.OK);
 	}
 
 	/**
-	 * Diese Methode holt alle bearbeiteten Issues eines Services aus der DB.
+	 * This method returns all refactored issues of a filehoster from the database.
 	 * 
 	 * @return allIssues
 	 */
 	@RequestMapping(value = "/getAllServiceIssues", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "Lese alle vom Bot bearbeiteten Issues eines Services aus")
+	@ApiOperation(value = "Get all refactored issues from a specific filehoster.")
 	public ResponseEntity<?> getAllServiceIssues(
 			@RequestParam(value = "repoService", required = true, defaultValue = "github") String repoService) {
-		// Hole alle Issues und gebe sie zurück
 		Iterable<RefactoredIssue> allIssues = repo.getAllServiceRefactorings(repoService);
 		return new ResponseEntity<Iterable<RefactoredIssue>>(allIssues, HttpStatus.OK);
 	}
-	
+
 	/**
-	 * Diese Methode holt alle bearbeiteten Issues eines Users aus der DB.
+	 * This methor returns all refactored issues of a specific user from a specific
+	 * filehoster.
 	 * 
 	 * @return allIssues
 	 */
 	@RequestMapping(value = "/getAllUserIssues", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "Lese alle vom Bot bearbeiteten Issues eines Users aus")
+	@ApiOperation(value = "Get all refactored issues of a specific user from a specific filehoster.")
 	public ResponseEntity<?> getAllUserIssues(
 			@RequestParam(value = "repoService", required = true, defaultValue = "github") String repoService,
 			@RequestParam(value = "ownerName", required = true, defaultValue = "LHommeDeBat") String repoOwner) {
-		// Hole alle Issues und gebe sie zurück
 		Iterable<RefactoredIssue> allIssues = repo.getAllUserIssues(repoService, repoOwner);
 		return new ResponseEntity<Iterable<RefactoredIssue>>(allIssues, HttpStatus.OK);
 	}

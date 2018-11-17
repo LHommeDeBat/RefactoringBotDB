@@ -8,9 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Dieses Interface wird genutzt um mit der Datenbank zu kommunizieren. Dabei
- * wird sowohl das vom Spring angebotene CRUD-Repository verwendet als auch
- * klassische SQL-Queries.
+ * This interface is used to communicate with the database. It also implements
+ * Springs CrudRepository for direct access to existing CRUD-Methods.
  * 
  * @author Stefan Basaric
  *

@@ -31,8 +31,8 @@ import de.BA.refactoringBot.refactoring.RefactoringPicker;
 import io.swagger.annotations.ApiOperation;
 
 /**
- * Dieser REST-Controller ermöglicht die Nutzung des Bots durch den Nutzer via.
- * REST-Schnittstellen.
+ * This REST-Controller creates an REST-API which allows the user to perform
+ * refactorings with the bot.
  * 
  * @author Stefan Basaric
  *
@@ -65,92 +65,93 @@ public class RefactoringController {
 	SonarCubeObjectTranslator sonarTranslator;
 
 	/**
-	 * Diese Methode führt Refactorings anhand von Kommentaren in Pull-Requests aus.
+	 * This method performs refactorings with comments within Pull-Requests of a
+	 * Filehoster like GitHub.
 	 * 
 	 * @param configID
 	 * @return allRequests
 	 */
 	@RequestMapping(value = "/refactorWithComments/{configID}", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "Führt Refactoring anhand der Pull-Request-Kommentare in einem Repository aus.")
+	@ApiOperation(value = "Perform refactorings with Pull-Request-Comments.")
 	public ResponseEntity<?> refactorWithComments(@PathVariable Long configID) {
 
-		// Erstelle Liste von Refactored Issues
+		// Create empty list of refactored Issues
 		List<RefactoredIssue> allRefactoredIssues = new ArrayList<RefactoredIssue>();
 
-		// Hole Git-Konfiguration für Bot falls Existiert
+		// Try to get the Git-Configuration with the given ID
 		Optional<GitConfiguration> gitConfig = configRepo.getByID(configID);
-		// Falls nicht existiert
+		// If Configuration does not exist
 		if (!gitConfig.isPresent()) {
-			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",
-					HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>("Configuration with given ID does not exist!", HttpStatus.NOT_FOUND);
 		}
 
-		// Initiiere Objekt
+		// Init translated Pull-Request-Object
 		BotPullRequests allRequests = null;
 		try {
-			// Hole aktuellste OG-Repo-Daten
+			// Fetch target-Repository-Data
 			dataGetter.fetchRemote(gitConfig.get());
-			// Hole Requests mit Kommentaren vom Filehoster im Bot-Format
+			// Get Pull-Requests with comments
 			allRequests = grabber.getRequestsWithComments(gitConfig.get());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		// Gehe alle PullRequests durch
+		// Iterate through all requests
 		for (BotPullRequest request : allRequests.getAllPullRequests()) {
-			// Gehe alle Kommentare eines Requests durch
+			// Iterate through all comments
 			for (BotPullRequestComment comment : request.getAllComments()) {
-				// Falls Kommentar für Bot bestimmt und nicht schon Refactored wurde
+				// Check if comment is valid and not already refactored
 				if (grammarController.checkComment(comment.getCommentBody()) && !issueRepo
 						.refactoredComment(gitConfig.get().getRepoService(), comment.getCommentID().toString())
 						.isPresent()) {
-					// Erstelle Issue
+					// Create issue
 					BotIssue botIssue = grammarController.createIssueFromComment(comment);
-					// Versuche zu Pullen
+
 					try {
-						// Falls Request nicht vom Bot erstellt wurde
+						// For Requests created by someone else
 						if (!request.getCreatorName().equals(gitConfig.get().getBotName())) {
-							// Erstelle Branch für das Kommentar-Refactoring
+							// Create refactoring branch with Filehoster-Service + Comment-ID
 							String newBranch = gitConfig.get().getRepoService() + "_Refactoring_"
 									+ comment.getCommentID().toString();
 							dataGetter.createBranch(gitConfig.get(), request.getBranchName(), newBranch);
 
-							// Versuche Refactoring auszuführen
+							// Try to refactor
 							String commitMessage = refactoring.pickRefactoring(botIssue, gitConfig.get());
 
-							// Falls erfolgreich
+							// If successful
 							if (commitMessage != null) {
-								// Baue RefactoredIssue-Objekt
+								// Create Refactored-Obect
 								RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(botIssue,
 										gitConfig.get());
 
-								// Speichere den RefactoredIssue in die DB
+								// Save to Database + add to list
 								RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
 								allRefactoredIssues.add(savedIssue);
 
-								// Pushe Änderungen + erstelle Request
+								// Push changes + create Pull-Request
 								dataGetter.pushChanges(gitConfig.get(), commitMessage);
 								grabber.makeCreateRequest(request, comment, gitConfig.get(), newBranch);
 							}
+							// For Requests created by the bot
 						} else {
-							// Wechsle zum Refactoring-Branch
+							// Change to existing Refactoring-Branch
 							dataGetter.switchBranch(gitConfig.get(), request.getBranchName());
 
-							// Versuche Refactoring auszuführen
+							// Try to refactor
 							String commitMessage = refactoring.pickRefactoring(botIssue, gitConfig.get());
 
-							// Falls erfolgreich
+							// If successful
 							if (commitMessage != null) {
-								// Baue RefactoredIssue-Objekt
+								// Create Refactored-Object
 								RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(botIssue,
 										gitConfig.get());
 
-								// Speichere den RefactoredIssue in die DB
+								// Save to Database + add to list
 								RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
 								allRefactoredIssues.add(savedIssue);
 
-								// Pushe Änderungen + aktualisiere Request
+								// Push changes + edit Pull-Request
 								dataGetter.pushChanges(gitConfig.get(), commitMessage);
 								grabber.makeUpdateRequest(request, comment, gitConfig.get());
 							}
@@ -163,40 +164,41 @@ public class RefactoringController {
 			}
 		}
 
-		// Gebe übersetzte Requests zurück
+		// Return all refactored issues
 		return new ResponseEntity<List<RefactoredIssue>>(allRefactoredIssues, HttpStatus.OK);
 	}
 
 	/**
-	 * Diese Methode führt Refactorings anhand von SonarQube-Befunden aus.
+	 * This method performs refactorings according to findings with an analysis
+	 * service like SonarCube.
 	 * 
 	 * @param configID
 	 * @return allRefactoredIssues
 	 */
 	@RequestMapping(value = "/refactorWithAnalysisService/{configID}", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "Führt Refactoring anhand der SonarCube-Issues in einem Repository aus.")
+	@ApiOperation(value = "Perform refactorings with analysis service.")
 	public ResponseEntity<?> refactorWithSonarCube(@PathVariable Long configID) {
 
-		// Erstelle Liste von Refactored Issues
+		// Create empty list of refactored Issues
 		List<RefactoredIssue> allRefactoredIssues = new ArrayList<RefactoredIssue>();
 
-		// Hole Git-Konfiguration für Bot falls Existiert
+		// Try to get the Git-Configuration with the given ID
 		Optional<GitConfiguration> gitConfig = configRepo.getByID(configID);
-		// Falls nicht existiert
+		// If configuration does not exist
 		if (!gitConfig.isPresent()) {
-			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",
+			return new ResponseEntity<String>("Configuration with the given ID does not exist!",
 					HttpStatus.NOT_FOUND);
 		}
-		// Falls Projekt nicht auf einem AnalysisService gehostet
+		// If analysis service data is missing
 		if (gitConfig.get().getAnalysisService() == null || gitConfig.get().getAnalysisServiceProjectKey() == null) {
-			return new ResponseEntity<String>("Konfiguration besitzt nicht alle Daten für den Analysis-Service!",
+			return new ResponseEntity<String>("Configuration is missing analysis service data!",
 					HttpStatus.BAD_REQUEST);
 		}
 
 		try {
-			// Hole aktuellste OG-Repo-Daten
+			// Fetch target-Repository-data
 			dataGetter.fetchRemote(gitConfig.get());
-			// Hole Requests vom Filehoster (und teste ob Limit erreicht)
+			// Check if max amount of Requests reached
 			grabber.getRequestsWithComments(gitConfig.get());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -204,39 +206,38 @@ public class RefactoringController {
 		}
 
 		try {
-			// Hole Issues von der AnalysisService-API
+			// Get issues from analysis service API
 			List<BotIssue> botIssues = grabber.getAnalysisServiceIssues(gitConfig.get());
 
-			// Falls AnalysisService nicht unterstützt
+			// If analysis-service not supported
 			if (botIssues == null) {
 				return new ResponseEntity<String>(
-						"Analysis-Service '" + gitConfig.get().getAnalysisService() + "' wird nicht unterstützt!",
+						"Analysis-Service '" + gitConfig.get().getAnalysisService() + "' is not supported!",
 						HttpStatus.BAD_REQUEST);
 			}
 
-			// Gehe alle Issues durch
+			// Iterate all issues
 			for (BotIssue botIssue : botIssues) {
-				// Wenn SonarCube Issue nicht schonmal bearbeitet worden ist
+				// If issue was not already refactored
 				if (!issueRepo.refactoredSonarCube(botIssue.getCommentServiceID()).isPresent()) {
-					// TODO: Dynamischer Branch
-					// Erstelle Branch für das Kommentar-Refactoring
+					// TODO: Dynamic branch
+					// Create new branch for refactoring
 					String newBranch = "sonarCube_Refactoring_" + botIssue.getCommentServiceID();
 					dataGetter.createBranch(gitConfig.get(), "master", newBranch);
-					// Versuche Refactoring auszuführen
+					// Try to refactor
 					String commitMessage = refactoring.pickRefactoring(botIssue, gitConfig.get());
 
-					// Falls Refactoring für Issue ausgeführt wurde
+					// If successful
 					if (commitMessage != null) {
-						// Baue RefactoredIssue-Objekt
+						// Create Refactored-Object
 						RefactoredIssue refactoredIssue = botController.buildRefactoredIssue(botIssue, gitConfig.get());
 
-						// Speichere den RefactoredIssue in die DB
+						// Save to database + add to list
 						RefactoredIssue savedIssue = refactoredIssues.save(refactoredIssue);
 						allRefactoredIssues.add(savedIssue);
 
-						// Pushe Änderungen + erstelle Request
+						// Push changes + create Pull-Request
 						dataGetter.pushChanges(gitConfig.get(), commitMessage);
-						// Erstelle PullRequest
 						grabber.makeCreateRequestWithAnalysisService(botIssue, gitConfig.get(), newBranch);
 					}
 				}

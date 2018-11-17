@@ -4,8 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Diese Klasse wird von der Konfigurationsdatei application.yml verwendet. Dort
- * können die Bot-Eigenschaften eingestellt werden.
+ * This class is used within the application.yml file.
  * 
  * @author Stefan Basaric
  *

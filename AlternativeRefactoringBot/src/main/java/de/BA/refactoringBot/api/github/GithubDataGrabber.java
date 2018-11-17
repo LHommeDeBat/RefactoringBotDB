@@ -26,7 +26,7 @@ import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
-import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComments;
+import de.BA.refactoringBot.model.githubModels.pullRequestComment.GitHubPullRequestComments;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.ReplyComment;
 import de.BA.refactoringBot.model.githubModels.repository.GithubRepository;
 import de.BA.refactoringBot.model.githubModels.user.GithubUser;
@@ -48,10 +48,7 @@ public class GithubDataGrabber {
 	private final String USER_AGENT = "Mozilla/5.0";
 
 	/**
-	 * Diese Methode checkt den Userinput beim Erstellen einer Git-Konfiguration.
-	 * Dafür ruft sie den passenden API-Link auf und holt sich die Daten welche für
-	 * die Erstellung der Konfiguration nötig sind. Aktuell wird nur Github
-	 * unterstützt.
+	 * This method tries to get a repository from github.
 	 * 
 	 * @param repoName
 	 * @param repoOwner
@@ -60,30 +57,29 @@ public class GithubDataGrabber {
 	 * @throws Exception
 	 */
 	public void checkRepository(String repoName, String repoOwner) throws Exception {
-		// Baue URL
+		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
 				.path("/repos/" + repoOwner + "/" + repoName);
 
 		URI githubURI = apiUriBuilder.build().encode().toUri();
 
-		// Erstelle REST-Template
+		// Create REST-Template
 		RestTemplate rest = new RestTemplate();
 		// Baue Header
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("User-Agent", USER_AGENT);
 		HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 
-		// Sende Anfrage an GitHub-API und hole Json
+		// Send request to the GitHub-API
 		try {
 			rest.exchange(githubURI, HttpMethod.GET, entity, GithubRepository.class).getBody();
 		} catch (RestClientException e) {
-			throw new Exception("Repository existiert auf Github nicht!");
+			throw new Exception("Repository does not exist on Github!");
 		}
 	}
 
 	/**
-	 * Diese Methode checkt ob der User bei Github existiert und ob der Token gültig
-	 * ist.
+	 * This method tries to get a user with the given token.
 	 * 
 	 * @param botUsername
 	 * @param botToken
@@ -91,7 +87,7 @@ public class GithubDataGrabber {
 	 * @throws Exception
 	 */
 	public void checkGithubUser(String botUsername, String botToken) throws Exception {
-		// Baue URL
+		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
 				.path("/user");
 
@@ -99,123 +95,122 @@ public class GithubDataGrabber {
 
 		URI githubURI = apiUriBuilder.build().encode().toUri();
 
-		// Erstelle REST-Template
+		// Create REST-Template
 		RestTemplate rest = new RestTemplate();
-		// Baue Header
+		// Build Header
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("User-Agent", USER_AGENT);
 		HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 
-		// Sende Anfrage an GitHub-API und hole Json
+		// Send request to the GitHub-API
 		GithubUser githubUser = null;
 		try {
 			githubUser = rest.exchange(githubURI, HttpMethod.GET, entity, GithubUser.class).getBody();
 		} catch (RestClientException e) {
-			throw new Exception("Bot-Token ungültig!");
+			throw new Exception("Invalid Bot-Token!");
 		}
 
 		// Prüfe Usernamen
 		if (!githubUser.getLogin().equals(botUsername)) {
-			throw new Exception("Username des Bots ist ungültig!");
+			throw new Exception("Bot-User does not exist on Github!");
 		}
 	}
 
 	/**
-	 * Diese Methode holt alle PullRequests aus dem in der Konfigurationsdatei
-	 * eingestellten Repository
+	 * This method returns all PullRequest from Github.
 	 * 
 	 * @return allRequests
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public GithubPullRequests getAllPullRequests(GitConfiguration gitConfig) throws Exception {
-		// Lese API-URI aus Konfiguration aus
+		// Read URI from configuration
 		URI configUri = null;
 		try {
 			configUri = new URI(gitConfig.getRepoApiLink());
 		} catch (URISyntaxException u) {
-			throw new Exception("Konnte URI aus Konfiguration nicht generieren!");
+			throw new Exception("Could not read URI from configuration!");
 		}
 
-		// Baue URI
+		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath() + "/pulls");
 
 		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
 
 		URI pullsUri = apiUriBuilder.build().encode().toUri();
-		// Erstelle REST-Template
+		// Create REST-Template
 		RestTemplate rest = new RestTemplate();
-		// Baue Header
+		// Create Header
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("User-Agent", USER_AGENT);
 		HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-		// Sende Anfrage an GitHub-API und hole Json
+		// Send Request to the GitHub-API
 		String json = null;
 		try {
 			json = rest.exchange(pullsUri, HttpMethod.GET, entity, String.class).getBody();
 		} catch (RestClientException e) {
-			throw new Exception("Konnte Pull-Requests nicht von Github holen!");
+			throw new Exception("Could not get Pull-Requests from Github!");
 		}
-		
 
-		// Erstelle Objekt für Ausgabe
+		// Create request object
 		GithubPullRequests allRequests = new GithubPullRequests();
 
-		// Versuche JSON in Objekte umzuwandeln
+		// Try to map json to object
 		try {
 			List<GithubPullRequest> requestList = mapper.readValue(json,
 					mapper.getTypeFactory().constructCollectionType(List.class, GithubPullRequest.class));
 			allRequests.setAllPullRequests(requestList);
 			return allRequests;
 		} catch (IOException e) {
-			throw new Exception("Konnte Pull-Request JSON nicht auf Objekt mappen!");
+			throw new Exception("Could not create object from Github-Request json!");
 		}
 	}
 
 	/**
-	 * Diese Methode holt alle Kommentare eines PullRequests.
+	 * This method returns all comments of a pull request from Github.
 	 * 
 	 * @return allRequests
 	 * @throws Exception
 	 */
-	public PullRequestComments getAllPullRequestComments(URI commentsUri, GitConfiguration gitConfig) throws Exception {
-		// Baue URI
+	public GitHubPullRequestComments getAllPullRequestComments(URI commentsUri, GitConfiguration gitConfig)
+			throws Exception {
+		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(commentsUri.getScheme())
 				.host(commentsUri.getHost()).path(commentsUri.getPath());
 
 		apiUriBuilder.queryParam("access_token", gitConfig.getBotToken());
 
 		URI githubURI = apiUriBuilder.build().encode().toUri();
-		// Erstelle REST-Template
+		// Create REST-Template
 		RestTemplate rest = new RestTemplate();
-		// Baue Header
+		// Create Header
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("User-Agent", USER_AGENT);
 		HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-		// Sende Anfrage an GitHub-API und hole Json
+		// Send request to the GitHub-API
 		String json = null;
 		try {
 			json = rest.exchange(githubURI, HttpMethod.GET, entity, String.class).getBody();
 		} catch (RestClientException r) {
-			throw new Exception("Konnte Pull-Request-Kommentare nicht holen!");
+			throw new Exception("Could not get pull request comments from Github!");
 		}
 
-		// Erstelle Objekt für Ausgabe
-		PullRequestComments allComments = new PullRequestComments();
+		// Create comments object
+		GitHubPullRequestComments allComments = new GitHubPullRequestComments();
 
-		// Versuche JSON in Objekte umzuwandeln
+		// Try to map json to object
 		try {
 			List<PullRequestComment> commentList = mapper.readValue(json,
 					mapper.getTypeFactory().constructCollectionType(List.class, PullRequestComment.class));
 			allComments.setComments(commentList);
 			return allComments;
 		} catch (IOException e) {
-			throw new Exception("Konnte Kommentar-JSON nicht auf Objekt mappen!");
+			throw new Exception("Could not create object from Github-Comment json!");
 		}
 	}
 
 	/**
-	 * Diese Methode aktualisiert den aktuellen Pull-Request auf Github. RequestBody
+	 * This method updates a pull request on Github.
 	 * 
 	 * @param send
 	 * @param gitConfig
@@ -223,15 +218,15 @@ public class GithubDataGrabber {
 	 */
 	public void updatePullRequest(GithubUpdateRequest send, GitConfiguration gitConfig, Integer requestNumber)
 			throws Exception {
-		// Baue URI
+		// Read URI from configuration
 		URI configUri = null;
 		try {
 			configUri = new URI(gitConfig.getRepoApiLink());
 		} catch (URISyntaxException u) {
-			throw new Exception("Konnte URI aus Konfiguration nicht generieren!");
+			throw new Exception("Could not read URI from configuration!");
 		}
 
-		// Baue URI mit Parametern
+		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath() + "/pulls/" + requestNumber);
 
@@ -239,42 +234,42 @@ public class GithubDataGrabber {
 
 		URI pullsUri = apiUriBuilder.build().encode().toUri();
 
-		// Header-Umweg für PATCH-Requests
+		// For PATCH-Requests
 		HttpHeaders headers = new HttpHeaders();
 		MediaType mediaType = new MediaType("application", "merge-patch+json");
 		headers.setContentType(mediaType);
 
-		// Erstellen des REST-Template mit PATCH-Umweg
+		// Create REST-Template
 		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 		RestTemplate rest = new RestTemplate(requestFactory);
 
-		// Sende Anfrage an GitHub-API und hole Json
+		// Send request to the GitHub-API
 		try {
 			rest.exchange(pullsUri, HttpMethod.PATCH, new HttpEntity<GithubUpdateRequest>(send), String.class);
 		} catch (RestClientException e) {
-			throw new Exception("Konnte Pull-Request nicht aktualisieren!");
+			throw new Exception("Could not update pull request!");
 		}
 	}
 
 	/**
-	 * Diese Methode antwortet den an den Bot gerichteten Kommentar.
+	 * This method replies to a comment on Github.
 	 * 
 	 * @param comment
 	 * @param gitConfig
 	 * @param requestNumber
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public void responseToBotComment(ReplyComment comment, GitConfiguration gitConfig, Integer requestNumber)
 			throws Exception {
-		// Lese URI aus Konfiguration
+		// Read URI from configuration
 		URI configUri = null;
 		try {
 			configUri = new URI(gitConfig.getRepoApiLink());
 		} catch (URISyntaxException u) {
-			throw new Exception("Konnte URI aus Konfiguration nicht generieren!");
+			throw new Exception("Could not read URI from configuration!");
 		}
 
-		// Baue URI
+		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath() + "/pulls/" + requestNumber + "/comments");
 
@@ -284,16 +279,16 @@ public class GithubDataGrabber {
 
 		RestTemplate rest = new RestTemplate();
 
-		// Sende Anfrage an GitHub-API und hole Json
+		// Send request to Github-API
 		try {
 			rest.exchange(pullsUri, HttpMethod.POST, new HttpEntity<ReplyComment>(comment), String.class);
 		} catch (RestClientException e) {
-			throw new Exception("Konnte auf Kommentar in Github nicht antworten");
+			throw new Exception("Could not reply to Github comment!");
 		}
 	}
 
 	/**
-	 * Diese Methode erstellt einen PullRequest auf Github im ParentRepository
+	 * This method creates a pull request on Github.
 	 * 
 	 * @param request
 	 * @param gitConfig
@@ -301,15 +296,15 @@ public class GithubDataGrabber {
 	 */
 	public GithubPullRequest createRequest(GithubCreateRequest request, GitConfiguration gitConfig) throws Exception {
 
-		// Lese URI aus Konfiguration
+		// Read URI from configuration
 		URI configUri = null;
 		try {
 			configUri = new URI(gitConfig.getRepoApiLink());
 		} catch (URISyntaxException u) {
-			throw new Exception("Konnte URI aus Konfiguration nicht generieren!");
+			throw new Exception("Could not read uri from configuration!");
 		}
 
-		// Baue URI
+		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath() + "/pulls");
 
@@ -319,18 +314,17 @@ public class GithubDataGrabber {
 
 		RestTemplate rest = new RestTemplate();
 
-		// Sende Anfrage an GitHub-API und hole Json
+		// Send request to the GitHub-API
 		try {
-			return rest.exchange(pullsUri, HttpMethod.POST, new HttpEntity<GithubCreateRequest>(request), GithubPullRequest.class)
-					.getBody();
+			return rest.exchange(pullsUri, HttpMethod.POST, new HttpEntity<GithubCreateRequest>(request),
+					GithubPullRequest.class).getBody();
 		} catch (RestClientException r) {
-			throw new Exception("Konnte Pull-Request auf Github nicht erstellen!");
+			throw new Exception("Could not create pull request on Github!");
 		}
 	}
 
 	/**
-	 * Diese Methode erstellt für den Bot einen Fork auf Github mit dem vom Nutzer
-	 * angegebenen Daten
+	 * This method creates a fork from a repository.
 	 * 
 	 * @param gitConfig
 	 * @return
@@ -338,17 +332,15 @@ public class GithubDataGrabber {
 	 */
 	public void createFork(GitConfiguration gitConfig) throws Exception {
 
-		// Deklarire URI
+		// Read URI from configuration
 		URI configUri = null;
-
-		// Versuche URI zu erstellen anhand der Konfiguration
 		try {
 			configUri = new URI(gitConfig.getRepoApiLink());
 		} catch (URISyntaxException u) {
-			throw new Exception("Konnte URI aus Konfiguration nicht generieren!");
+			throw new Exception("Could not read URI from configuration!");
 		}
 
-		// Baue URI mit Parametern
+		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath() + "/forks");
 
@@ -356,35 +348,34 @@ public class GithubDataGrabber {
 
 		URI forksUri = apiUriBuilder.build().encode().toUri();
 
+		// Create REST-Template
 		RestTemplate rest = new RestTemplate();
 
-		// Versucge Fork auf Github zu erstellen
+		// Send request to the Github-API
 		try {
 			rest.exchange(forksUri, HttpMethod.POST, null, GithubFork.class).getBody();
 		} catch (RestClientException r) {
-			throw new Exception("Fork konnte nicht erstellt werden!");
+			throw new Exception("Could not create fork on Github!");
 		}
 	}
 
 	/**
-	 * Diese Methode löscht das Fork-Repository des Bots wenn die passende
-	 * Konfiguration gelöscht wurde.
+	 * This method deletes a repository from Github.
 	 * 
 	 * @param gitConfiguration
 	 * @throws Exception
 	 */
 	public void deleteRepository(GitConfiguration gitConfig) throws Exception {
 
-		// Deklariere URI
+		// Read URI from configuration
 		URI configUri = null;
-
 		try {
 			configUri = new URI(gitConfig.getForkApiLink());
 		} catch (URISyntaxException u) {
-			throw new Exception("Konnte URI aus Konfiguration nicht generieren!");
+			throw new Exception("Could not read URI from configuration!");
 		}
 
-		// Baue URI mit Parametern
+		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme(configUri.getScheme())
 				.host(configUri.getHost()).path(configUri.getPath());
 
@@ -392,13 +383,14 @@ public class GithubDataGrabber {
 
 		URI repoUri = apiUriBuilder.build().encode().toUri();
 
+		// Create REST-Template
 		RestTemplate rest = new RestTemplate();
 
-		// Sende Anfrage an GitHub-API und hole Json
+		// Send request to the Github-API
 		try {
 			rest.exchange(repoUri, HttpMethod.DELETE, null, String.class);
 		} catch (RestClientException r) {
-			throw new Exception("Konnte Repository/Fork nicht löschen!");
+			throw new Exception("Could not delete repository from Github!");
 		}
 	}
 

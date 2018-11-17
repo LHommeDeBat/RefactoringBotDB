@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Diese Klasse startet Spring und damit auch den Webservice.
+ * This Class bootstraps Spring and automatically configures it.
  * 
  * @author Stefan Basaric
  *
@@ -13,8 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class AlternativeRefactoringBotApplication {
 
 	/**
-	 * Diese Methode startet die Anwendung. Dabei wird auch Spring mit allen
-	 * Funktionen gestartet und automatisch konfiguriert.
+	 * This method starts the Spring-Application.
 	 * 
 	 * @param args
 	 */

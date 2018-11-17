@@ -24,7 +24,8 @@ import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullReques
 import de.BA.refactoringBot.model.sonarQube.SonarCubeIssues;
 
 /**
- * Diese Klasse leitet alle Anfragen an die passenden APIs weiter.
+ * This class transfers all Rest-Requests to correct APIs and returns all
+ * objects as translated bot objects.
  * 
  * @author Stefan Basaric
  *
@@ -44,25 +45,25 @@ public class ApiGrabber {
 	BotController botController;
 
 	/**
-	 * Diese Methode holt alle Pullrequests mitsamt der Kommentare im Bot-Format vom
-	 * passenden Filehoster-Service.
+	 * This method gets all requests with all comments from an api translated into a
+	 * bot object.
 	 * 
 	 * @param gitConfig
 	 * @return botRequests
 	 * @throws Exception
 	 */
 	public BotPullRequests getRequestsWithComments(GitConfiguration gitConfig) throws Exception {
-		// Erstelle Request-Objekt
+		// Init bot object
 		BotPullRequests botRequests = null;
 
-		// Wähle passenden Service aus
+		// Pick correct filehoster
 		switch (gitConfig.getRepoService()) {
 		case "github":
-			// Hole Requests von Github
+			// Get data from github
 			GithubPullRequests githubRequests = githubGrabber.getAllPullRequests(gitConfig);
-			// Wandle Objekt in Bot-Objekt um
+			// Translate github object
 			botRequests = githubTranslator.translateRequests(githubRequests, gitConfig);
-			// Checke ob Maximale Anzahl erreicht
+			// Check if max amount of requests reached
 			botController.checkAmountOfBotRequests(botRequests, gitConfig);
 			break;
 		}
@@ -70,8 +71,7 @@ public class ApiGrabber {
 	}
 
 	/**
-	 * Diese Methode erstellt einen Request der genutzt wird um einen Request beim
-	 * Filehoster zu Aktualisieren.
+	 * This method updates a pull request of a specific filehoster.
 	 * 
 	 * @param request
 	 * @param gitConfig
@@ -80,14 +80,14 @@ public class ApiGrabber {
 	 */
 	public void makeUpdateRequest(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig)
 			throws Exception {
-		// Wähle passenden Service aus
+		// Pick filehoster
 		switch (gitConfig.getRepoService()) {
 		case "github":
-			// Erstelle aktualisierten Request
+			// Create updateRequest
 			GithubUpdateRequest updateRequest = githubTranslator.makeUpdateRequest(request, gitConfig);
-			// Aktualisiere Request
+			// Update Request
 			githubGrabber.updatePullRequest(updateRequest, gitConfig, request.getRequestNumber());
-			// Antworte auf an Bot gerichteten Request-Kommentar
+			// Reply to comment
 			githubGrabber.responseToBotComment(githubTranslator.createReplyComment(comment, gitConfig, null), gitConfig,
 					request.getRequestNumber());
 			break;
@@ -95,9 +95,7 @@ public class ApiGrabber {
 	}
 
 	/**
-	 * Diese Methode erstellt einen Request auf einem Filehoster, falls der Request,
-	 * welcher Refactored wurde, nicht dem Bot gehöhrt und er dementsprechend für
-	 * die Bearbeitung keine Rechte hat,´.
+	 * This method creates a pull request of a filehoster.
 	 * 
 	 * @param request
 	 * @param gitConfig
@@ -105,14 +103,14 @@ public class ApiGrabber {
 	 */
 	public void makeCreateRequest(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig,
 			String botBranchName) throws Exception {
-		// Wähle passenden Service aus
+		// Pick filehoster
 		switch (gitConfig.getRepoService()) {
 		case "github":
-			// Erstelle Request-Objekt
+			// Create createRequest
 			GithubCreateRequest createRequest = githubTranslator.makeCreateRequest(request, gitConfig, botBranchName);
-			// Erstelle Request auf Github
+			// Create request
 			GithubPullRequest newGithubRequest = githubGrabber.createRequest(createRequest, gitConfig);
-			// Antworte auf an Bot gerichteten Request-Kommentar
+			// Reply to comment
 			githubGrabber.responseToBotComment(
 					githubTranslator.createReplyComment(comment, gitConfig, newGithubRequest.getHtmlUrl()), gitConfig,
 					request.getRequestNumber());
@@ -121,7 +119,7 @@ public class ApiGrabber {
 	}
 
 	/**
-	 * Schaue ob das Repository existiert und erstelle dafür eine Konfiguration.
+	 * This method checks the user input and creates a git configuration.
 	 * 
 	 * @param repoName
 	 * @param repoOwner
@@ -137,95 +135,73 @@ public class ApiGrabber {
 			String botUsername, String botPassword, String botToken, String analysisService,
 			String analysisServiceProjectKey, Integer maxAmountRequests, String projectRootFolder) throws Exception {
 
-		// Initiiere Konfiguration
+		// Init object
 		GitConfiguration gitConfig = null;
 
-		// Wähle passenden Service aus
+		// Pick filehoster
 		switch (repoService.toLowerCase()) {
 		case "github":
-			// Prüfe Repo-Existenz
+			// Check repository
 			githubGrabber.checkRepository(repoName, repoOwner);
 
-			// Prüfe Bot-User-Existenz + Token gültigkeit
+			// Check bot user and bot token
 			githubGrabber.checkGithubUser(botUsername, botToken);
 
-			// Erstelle Konfiguration und den Fork
+			// Create git configuration and a fork
 			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
 					repoService, analysisService, analysisServiceProjectKey, maxAmountRequests, projectRootFolder);
 			githubGrabber.createFork(gitConfig);
 			return gitConfig;
 		default:
-			throw new Exception("Filehoster " + "'" + repoService + "' wird nicht unterstützt!");
+			throw new Exception("Filehoster " + "'" + repoService + "' is not supported!");
 		}
 	}
 
 	/**
-	 * Diese Methode löscht das Repository eines Filehosters nachdem die
-	 * Konfiguration aus der DB des Serivices entfernt wurde.
+	 * This method deletes a repository of a filehoster.
 	 * 
 	 * @param gitConfig
 	 * @throws Exception
 	 * @throws OperationNotSupportedException
 	 */
 	public void deleteRepository(GitConfiguration gitConfig) throws Exception {
-		// Wähle passenden Service aus
+		// Pick filehoster
 		switch (gitConfig.getRepoService()) {
 		case "github":
-			// Versuche Repo zu löschen
+			// Delete repository
 			githubGrabber.deleteRepository(gitConfig);
 			break;
 		}
 	}
 
 	/**
-	 * Diese Methode resettet den Fork bei jedem Refactoring um Merge-Konflikte zu
-	 * vermeiden.
-	 * 
-	 * @param gitConfig
-	 * @throws Exception
-	 */
-	public void resetFork(GitConfiguration gitConfig) throws Exception {
-		// Wähle passenden Service aus
-		switch (gitConfig.getRepoService()) {
-		case "github":
-			// Versuche Repo (Fork) zu löschen
-			githubGrabber.deleteRepository(gitConfig);
-			// Versuche neuen Fork zu erstellen
-			githubGrabber.createFork(gitConfig);
-			break;
-		}
-	}
-
-	/**
-	 * Diese Methode erstellt den Fork für das in das in der GitConfig angegebene
-	 * Repository.
+	 * This method creates a fork of a repository of a filehoster.
 	 * 
 	 * @param gitConfig
 	 * @throws Exception
 	 */
 	public void createFork(GitConfiguration gitConfig) throws Exception {
-		// Wähle passenden Service aus
+		// Pick filehoster
 		switch (gitConfig.getRepoService()) {
 		case "github":
-			// Versuche neuen Fork zu erstellen
+			// Create fork
 			githubGrabber.createFork(gitConfig);
 			break;
 		}
 	}
 
 	/**
-	 * Diese Methode holt die Issues von einer API eines Analysis-Services und gibt
-	 * sie übersetzt zuück.
+	 * This method gets all issues of a Project from a analysis service.
 	 * 
 	 * @param gitConfig
 	 * @return botIssues
 	 * @throws Exception
 	 */
 	public List<BotIssue> getAnalysisServiceIssues(GitConfiguration gitConfig) throws Exception {
-		// Wähle passenden Service aus
+		// Pick service
 		switch (gitConfig.getAnalysisService()) {
 		case "sonarcube":
-			// Versuche neuen Fork zu erstellen
+			// Get issues and translate them
 			SonarCubeIssues issues = sonarCubeGrabber.getIssues(gitConfig.getAnalysisServiceProjectKey());
 			List<BotIssue> botIssues = sonarCubeTranslator.translateSonarIssue(issues, gitConfig);
 			return botIssues;
@@ -233,10 +209,10 @@ public class ApiGrabber {
 			return null;
 		}
 	}
-	
+
 	/**
-	 * Diese Methode erstellt einen Request auf einem Filehoster, falls SonarCube zu
-	 * refactorende Issues gefunden hat.
+	 * This method creates a request on a filehoster if the refactoring was
+	 * performed with issues from a analysis tool.
 	 * 
 	 * @param request
 	 * @param gitConfig
@@ -245,13 +221,13 @@ public class ApiGrabber {
 	 */
 	public void makeCreateRequestWithAnalysisService(BotIssue issue, GitConfiguration gitConfig, String newBranch)
 			throws Exception {
-		// Wähle passenden Service aus
+		// Pick filehoster
 		switch (gitConfig.getRepoService()) {
 		case "github":
-			// Erstelle Request-Objekt
+			// Create createRequest
 			GithubCreateRequest createRequest = githubTranslator.makeCreateRequestWithAnalysisService(issue, gitConfig,
 					newBranch);
-			// Erstelle Request auf Github
+			// Create request on filehoster
 			githubGrabber.createRequest(createRequest, gitConfig);
 			break;
 		}

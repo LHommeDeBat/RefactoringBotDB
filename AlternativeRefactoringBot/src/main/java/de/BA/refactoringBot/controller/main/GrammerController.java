@@ -7,15 +7,15 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.springframework.stereotype.Component;
 
-import de.BA.refactoringBot.grammer.botGrammer.BotOperationsBaseListener;
-import de.BA.refactoringBot.grammer.botGrammer.BotOperationsLexer;
-import de.BA.refactoringBot.grammer.botGrammer.BotOperationsParser;
+import de.BA.refactoringBot.grammar.botGrammar.BotOperationsBaseListener;
+import de.BA.refactoringBot.grammar.botGrammar.BotOperationsLexer;
+import de.BA.refactoringBot.grammar.botGrammar.BotOperationsParser;
 import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 
 /**
- * Diese Klasse enthält alle wichtigsten Grammatikfunktionen welche von Antlr
- * zur Verfügung gestellt werden.
+ * This class performs all task that have something to do with the grammar that
+ * is used to read comments of pull requests.
  * 
  * @author Stefan Basaric
  *
@@ -24,29 +24,30 @@ import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullReques
 public class GrammerController {
 
 	/**
-	 * Diese Methode prüft ob ein Request-Kommentar von einem Filehoster eine
-	 * gültige Bot-Grammatik hat.
+	 * This method checks if a comment has a valid bot grammar and returns if the
+	 * comment is valid or not.
 	 * 
 	 * @param comment
+	 * @return valid
 	 * @throws Exception
 	 */
 	public Boolean checkComment(String comment) {
 		try {
-			// Erstelle Antlr-Lexer ohne Konsolenausgabe
+			// Create lexer and disable console logs
 			BotOperationsLexer lexer = new BotOperationsLexer(CharStreams.fromString(comment));
 			lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
 
-			// Erstelle Antlr-Parser ohne Konsolenausgabe
+			// Create parser and disable console logs
 			CommonTokenStream token = new CommonTokenStream(lexer);
 			BotOperationsParser parser = new BotOperationsParser(token);
 			parser.setBuildParseTree(true);
 			parser.removeErrorListener(ConsoleErrorListener.INSTANCE);
 
-			// Erstelle Parse-Tree
+			// Create parse tree
 			ParseTree tree = parser.botCommand();
 			ParseTreeWalker walker = new ParseTreeWalker();
 
-			// Lauf Tree mit generierten Listener ab
+			// Walk path tree
 			BotOperationsBaseListener listener = new BotOperationsBaseListener();
 			walker.walk(listener, tree);
 			return true;
@@ -56,37 +57,37 @@ public class GrammerController {
 	}
 
 	/**
-	 * Diese Methode übersetzt einen Kommentar welcher die Grammatik des Bots
-	 * erfüllt ein BotIssue-Objekt.
+	 * This mehtod translates an valid comment to a BotIssue that can be refactored.
 	 * 
 	 * @param comment
 	 * @return issue
 	 */
 	public BotIssue createIssueFromComment(BotPullRequestComment comment) {
-		// Initiiere Objekt
+		// Create object
 		BotIssue issue = new BotIssue();
 
-		// Splitte Kommentar an den Leerzeichen
+		// Split comment at whitespace
 		String[] commentArr = comment.getCommentBody().split(" ");
 
+		// Add data to comment
 		issue.setCommentServiceID(comment.getCommentID().toString());
 		issue.setLine(comment.getPosition());
 		issue.setFilePath(comment.getFilepath());
 
-		// Falls Hinzufüg-Operation
+		// Add operations
 		if (commentArr[1].equals("ADD")) {
-			// Falls Annotation hinzugefügt wird
+			// Add annotations
 			if (commentArr[2].equals("ANNOTATION")) {
-				// Falls Override-Annotation
+				// Add override annotation
 				if (commentArr[3].equals("Override")) {
 					issue.setRefactoringOperation("Add Override Annotation");
 				}
 			}
 		}
 
-		// Falls etwas umgestellt wird
+		// Reorder operations
 		if (commentArr[1].equals("REORDER")) {
-			// Falls Modifier umgestellt werden
+			// Reorder modifier operation
 			if (commentArr[2].equals("MODIFIER")) {
 				issue.setRefactoringOperation("Reorder Modifier");
 			}

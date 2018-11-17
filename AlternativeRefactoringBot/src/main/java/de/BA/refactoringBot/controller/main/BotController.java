@@ -12,29 +12,17 @@ import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
 
+/**
+ * This class performs bot specific operations.
+ * 
+ * @author Stefan Basaric
+ *
+ */
 @Component
 public class BotController {
 
 	/**
-	 * Diese Methode schaut ob ein Kommentar für den BOT bestimmt ist.
-	 * 
-	 * @param comment
-	 * @return boolean
-	 */
-	public boolean checkIfCommentForBot(BotPullRequestComment comment) {
-		// Splitte Kommentar an den Leerzeichen
-		String[] splitedComment = comment.getCommentBody().split(" ");
-		// Falls erstes Element = BOT -> Kommentar an BOT gerichtet
-		if (splitedComment[0].equals("BOT")) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Diese Methode checkt, ob die maximale Anzahl an offenen PullRequests des Bots
-	 * in dem entsprechenden Repository erreicht wurde.
+	 * This method checks if the maximal amount of pull requests created by the bot is reached.
 	 * 
 	 * @param requests
 	 * @param gitConfig
@@ -42,41 +30,40 @@ public class BotController {
 	 */
 	public void checkAmountOfBotRequests(BotPullRequests requests, GitConfiguration gitConfig) throws Exception {
 
-		// Initiiere Zähler
+		// Init counter
 		int counter = 0;
-		// Gehe alle Requests durch
+		// Iterate requests
 		for (BotPullRequest request : requests.getAllPullRequests()) {
-			// Falls Request dem Bot gehört
+			// If request belongs to bot
 			if (request.getCreatorName().equals(gitConfig.getBotName())) {
 				counter++;
 			}
 		}
 
-		// Prüfe ob Maximum an Requests erreicht oder überschritten
+		// Check if max amount is reached
 		if (counter >= gitConfig.getMaxAmountRequests()) {
-			throw new Exception("Maximale Anzahl an Requests erreicht bzw. überschritten." + "(Maximum = "
-					+ gitConfig.getMaxAmountRequests() + "; Aktuell = " + counter + " Requests des Bots offen)");
+			throw new Exception("Maximal amount of requests reached." + "(Maximum = "
+					+ gitConfig.getMaxAmountRequests() + "; Currently = " + counter + " bot requests are open)");
 		}
 	}
 
 	/**
-	 * Diese Methode erstellt das Objekt, welches das durchgeführte Refactoring
-	 * beschreibt.
+	 * The Method creates a RefactoredIssue-Object from a Analysis-Service-Refactoring.
 	 * 
 	 * @param issue
 	 * @param gitConfig
 	 * @return refactoredIssue
 	 */
 	public RefactoredIssue buildRefactoredIssue(BotIssue issue, GitConfiguration gitConfig) {
-		// Erstelle Objekt
+		// Create object
 		RefactoredIssue refactoredIssue = new RefactoredIssue();
 
-		// Erstelle Zeitstempel
+		// Create timestamp
 		SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd'T'HH:mm:ss.SSSZ");
 		Date now = new Date();
 		String date = sdf.format(now);
 
-		// Fülle Objekt
+		// Fill object
 		refactoredIssue.setCommentServiceID(issue.getCommentServiceID());
 		refactoredIssue.setRepoName(gitConfig.getRepoName());
 		refactoredIssue.setRepoOwner(gitConfig.getRepoOwner());
@@ -88,25 +75,25 @@ public class BotController {
 
 		return refactoredIssue;
 	}
-	
+
 	/**
-	 * Diese Methode erstellt das Objekt, welches das durchgeführte Refactoring
-	 * beschreibt.
+	 * The Method creates a RefactoredIssue-Object from a Request-Comment-Refactoring.
 	 * 
 	 * @param issue
 	 * @param gitConfig
 	 * @return refactoredIssue
 	 */
-	public RefactoredIssue buildRefactoredIssue(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig) {
-		// Erstelle Objekt
+	public RefactoredIssue buildRefactoredIssue(BotPullRequest request, BotPullRequestComment comment,
+			GitConfiguration gitConfig) {
+		// Create object
 		RefactoredIssue refactoredIssue = new RefactoredIssue();
 
-		// Erstelle Zeitstempel
+		// Create timestamp
 		SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd'T'HH:mm:ss.SSSZ");
 		Date now = new Date();
 		String date = sdf.format(now);
 
-		// Fülle Objekt
+		// Fill object
 		refactoredIssue.setCommentServiceID(comment.getCommentID().toString());
 		refactoredIssue.setRepoName(gitConfig.getRepoName());
 		refactoredIssue.setRepoOwner(gitConfig.getRepoOwner());
@@ -117,10 +104,10 @@ public class BotController {
 			refactoredIssue.setAnalysisService(gitConfig.getAnalysisService());
 		}
 
-		if(gitConfig.getAnalysisServiceProjectKey() != null) {
+		if (gitConfig.getAnalysisServiceProjectKey() != null) {
 			refactoredIssue.setAnalysisServiceProjectKey(gitConfig.getAnalysisServiceProjectKey());
 		}
-		
+
 		return refactoredIssue;
 	}
 }

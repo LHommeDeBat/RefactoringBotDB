@@ -36,8 +36,7 @@ public class ReorderModifier extends ModifierVisitor<Void> {
 	BotConfiguration botConfig;
 
 	/**
-	 * Diese Methode führt das Refactoring durch und gibt eine passende
-	 * Git-Commit-Nachricht zurück.
+	 * This method performs the refactoring and returns the a commit message.
 	 * 
 	 * @param issue
 	 * @param gitConfig
@@ -45,34 +44,33 @@ public class ReorderModifier extends ModifierVisitor<Void> {
 	 * @throws FileNotFoundException
 	 */
 	public String performRefactoring(BotIssue issue, GitConfiguration gitConfig) throws FileNotFoundException {
-		// Bereite Refactoringdaten vor
+		// Get filepath
 		String path = issue.getFilePath();
 
-		// Lese Datei aus
+		// Read file
 		FileInputStream in = new FileInputStream(
 				botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + path);
 		CompilationUnit compilationUnit = JavaParser.parse(in);
 
-		// Finde Code in Datei zum Refactoren
+		// Visit place in the code that needs refactoring
 		visit(compilationUnit, null);
 
-		// Schreibe Änderungen in Datei
+		// Save changes to file
 		PrintWriter out = new PrintWriter(
 				botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + path);
 		out.println(compilationUnit.toString());
 		out.close();
 
-		// Gebe passende Commit-Nachricht zurück
+		// Return commit message
 		return "Reordered modifier";
 	}
 
 	/**
-	 * Diese Methode sortiert alle Modifier.
+	 * This method reorders the modifiers.
 	 */
 	public Node visit(FieldDeclaration declarator, Void args) {
 		EnumSet<Modifier> modifiers = declarator.getModifiers();
 		declarator.setModifiers(modifiers);
 		return declarator;
-
 	}
 }

@@ -17,7 +17,7 @@ import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubPullRequests;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComment;
-import de.BA.refactoringBot.model.githubModels.pullRequestComment.PullRequestComments;
+import de.BA.refactoringBot.model.githubModels.pullRequestComment.GitHubPullRequestComments;
 import de.BA.refactoringBot.model.githubModels.pullRequestComment.ReplyComment;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
@@ -25,8 +25,7 @@ import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullReques
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComments;
 
 /**
- * Diese Klasse ist dafür zuständig, GitHub Objekte in eigene Objekte
- * umzuwandeln.
+ * This class translates all kinds of objects from GitHub to Bot-Objects
  * 
  * @author Stefan Basaric
  *
@@ -40,7 +39,7 @@ public class GithubObjectTranslator {
 	BotConfiguration botConfig;
 
 	/**
-	 * Diese Methode ertellt eine Konfiguration eines Repos.
+	 * This method creates a GitConfiguration from GitHub data.
 	 * 
 	 * @param repo
 	 * @param repoService
@@ -50,12 +49,12 @@ public class GithubObjectTranslator {
 	 * @return
 	 */
 	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername,
-			String botPassword, String botToken, String repoService, String analysisService, String analysusServiceProjectKey,
-			Integer maxAmountRequests, String projectRootFolder) {
-		// Erstelle Konfiguration
+			String botPassword, String botToken, String repoService, String analysisService,
+			String analysusServiceProjectKey, Integer maxAmountRequests, String projectRootFolder) {
+		// Create Configuration
 		GitConfiguration config = new GitConfiguration();
 
-		// Erstelle ApiLink (aktuell nur Github)
+		// Fill object
 		config.setRepoApiLink("https://api.github.com/repos/" + repoOwner + "/" + repoName);
 		config.setRepoGitLink("https://github.com/" + repoOwner + "/" + repoName + ".git");
 		config.setForkApiLink("https://api.github.com/repos/" + botUsername + "/" + repoName);
@@ -65,19 +64,21 @@ public class GithubObjectTranslator {
 		config.setRepoService(repoService.toLowerCase());
 		config.setBotName(botUsername);
 		config.setBotPassword(botPassword);
-		config.setAnalysisService(analysisService.toLowerCase());
+		
+		if (analysisService != null) {
+			config.setAnalysisService(analysisService.toLowerCase());
+		}
+
 		config.setAnalysisServiceProjectKey(analysusServiceProjectKey);
 		config.setMaxAmountRequests(maxAmountRequests);
 		config.setBotToken(botToken);
 		config.setProjectRootFolder(projectRootFolder);
 
-		// Gebe Konfiguration zurück
 		return config;
 	}
 
 	/**
-	 * Diese Methode nimmt eine Liste von GitHub-PullRequests und übersetzt sie in
-	 * das eigene Java-Objekt.
+	 * This method translates GitHub Pull-Requests to BotPullRequests
 	 * 
 	 * @param githubRequests
 	 * @return translatedRequests
@@ -85,15 +86,15 @@ public class GithubObjectTranslator {
 	 */
 	public BotPullRequests translateRequests(GithubPullRequests githubRequests, GitConfiguration gitConfig)
 			throws Exception {
-		// Erstelle Liste von übersetzten Objekten
+		// Create Requests
 		BotPullRequests translatedRequests = new BotPullRequests();
 
-		// Gehe alle Github-Requests durch
+		// Iterate all GitHub requests
 		for (GithubPullRequest githubRequest : githubRequests.getAllPullRequests()) {
-			// Erstelle für jeden ein PullRequest
+			// Create BotPullRequest
 			BotPullRequest pullRequest = new BotPullRequest();
 
-			// Fülle es mit wichtigsten Daten
+			// Fill request with data
 			pullRequest.setRequestName(githubRequest.getTitle());
 			pullRequest.setRequestDescription(githubRequest.getBody());
 			pullRequest.setRequestNumber(githubRequest.getNumber());
@@ -106,141 +107,138 @@ public class GithubObjectTranslator {
 			pullRequest.setMergeBranchName(githubRequest.getBase().getRef());
 			pullRequest.setRepoName(githubRequest.getBase().getRepo().getFullName());
 
-			// Baue URI für die Kommentare des Pull-Requests
+			// Create URI for the comments of the request
 			URI commentUri = null;
 			try {
 				commentUri = new URI(githubRequest.getReviewCommentsUrl());
 			} catch (URISyntaxException e) {
-				throw new Exception("Konnte URI für Pull-Request Kommentare nicht bauen!");
+				throw new Exception("Could not build comment URI!");
 			}
 
-			PullRequestComments githubComments = grabber.getAllPullRequestComments(commentUri, gitConfig);
+			// Get comments from github
+			GitHubPullRequestComments githubComments = grabber.getAllPullRequestComments(commentUri, gitConfig);
+			// Translate and add them to list
 			BotPullRequestComments comments = translatePullRequestComments(githubComments);
 			pullRequest.setAllComments(comments.getComments());
 
-			// Füge erstellten Request zur Liste hinzu
+			// Add request to translated request list
 			translatedRequests.addPullRequest(pullRequest);
 		}
 
-		// Gebe übersetzte PullRequests zurück
 		return translatedRequests;
 	}
 
 	/**
-	 * Diese Methode wandelt eine Liste von GitHub Pull-Request-Kommentaren in eine
-	 * Liste von Kommentaren des eigenen Models um.
+	 * This method translates github comments to bot comments.
 	 * 
 	 * @param githubComments
 	 * @return translatedComments
 	 */
-	public BotPullRequestComments translatePullRequestComments(PullRequestComments githubComments) {
-		// Erstelle Ausgabeliste
+	public BotPullRequestComments translatePullRequestComments(GitHubPullRequestComments githubComments) {
+		// Create Bot comments
 		BotPullRequestComments translatedComments = new BotPullRequestComments();
 
-		// Gehe alle GitHub-Kommentare durch
+		// Iterate github comments
 		for (PullRequestComment githubComment : githubComments.getComments()) {
-			// Erstelle neuen Kommentar mit eigenem Model
+			// Create bot comment
 			BotPullRequestComment translatedComment = new BotPullRequestComment();
 
-			// Fülle eigenes Model mit Daten
+			// Fill comment with data
 			translatedComment.setCommentID(githubComment.getId());
 			translatedComment.setFilepath(githubComment.getPath());
 			translatedComment.setUsername(githubComment.getUser().getLogin());
 			translatedComment.setCommentBody(githubComment.getBody());
 			translatedComment.setPosition(calculateTrueCommentPosition(githubComment.getBody()));
 
-			// Füge Kommentar zur Ergebnisliste hinzu
+			// Add comment to list
 			translatedComments.addComment(translatedComment);
 		}
 
-		// Gebe übersetzte Kommentarliste zurück
 		return translatedComments;
 	}
 
 	/**
-	 * Diese Methode erstellt einen Pull-Request im Github-Format damit der Bot
-	 * diesen Pull-Request nach erfolgreichem Refactoring auf Github aktualisieren
-	 * kann.
+	 * This method creates an Object that can be used to update a Pull-Request on
+	 * GitHub.
 	 * 
 	 * @param refactoredRequest
 	 * @return sendRequest
 	 */
 	public GithubUpdateRequest makeUpdateRequest(BotPullRequest refactoredRequest, GitConfiguration gitConfig) {
-		// Erstelle Request
+		// Create object
 		GithubUpdateRequest sendRequest = new GithubUpdateRequest();
 
-		// Erstelle heutiges Datum
+		// Create timestamp
 		SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
 		Date now = new Date();
 		String date = sdf.format(now);
 
-		// Fülle Request mit Daten
-		sendRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " aktualisiert.");
+		// Fill object with data
+		sendRequest.setBody("Updated by " + gitConfig.getBotName() + " on " + date + ".");
 		sendRequest.setMaintainer_can_modify(true);
 
-		// Gebe Request zurück
 		return sendRequest;
 	}
 
 	/**
-	 * Diese Methode erstellt einen Pull-Request im Github-Format damit der Bot
-	 * diesen Pull-Request auf Github erstellen kann.
+	 * This method creates an object that can be used to create a Pull-Request on
+	 * GitHub after a request comment refactoring.
 	 * 
 	 * @param gitConfig
 	 * @return createRequest
 	 */
 	public GithubCreateRequest makeCreateRequest(BotPullRequest refactoredRequest, GitConfiguration gitConfig,
 			String botBranchName) {
-		// Erstelle Request
+		// Create object
 		GithubCreateRequest createRequest = new GithubCreateRequest();
 
-		// Erstelle heutiges Datum
+		// Create timestamp
 		SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
 		Date now = new Date();
 		String date = sdf.format(now);
 
-		// Fülle Request mit Daten
-		createRequest.setTitle("Bot Pull-Request Refactoring für PullRequest #" + refactoredRequest.getRequestNumber());
-		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " erstellt.");
+		// Fill object with data
+		createRequest.setTitle("Bot Pull-Request Refactoring for PullRequest #" + refactoredRequest.getRequestNumber());
+		createRequest.setBody("Created by " + gitConfig.getBotName() + " on " + date + ".");
 		createRequest.setHead(gitConfig.getBotName() + ":" + botBranchName);
 		createRequest.setBase(refactoredRequest.getBranchName());
 		createRequest.setMaintainer_can_modify(true);
 
-		// Gebe Request zurück
 		return createRequest;
 	}
 
 	/**
-	 * Diese Methode erstellt einen Pull-Request im Github-Format damit der Bot
-	 * diesen Pull-Request auf Github erstellen kann.
+	 * This method creates an object that can be used to create a Pull-Request on
+	 * GitHub after a analysis service refactoring.
 	 * 
 	 * @param gitConfig
-	 * @param newBranch 
+	 * @param newBranch
 	 * @return createRequest
 	 */
-	public GithubCreateRequest makeCreateRequestWithAnalysisService(BotIssue issue, GitConfiguration gitConfig, String newBranch) {
-		// Erstelle Request
+	public GithubCreateRequest makeCreateRequestWithAnalysisService(BotIssue issue, GitConfiguration gitConfig,
+			String newBranch) {
+		// Create object
 		GithubCreateRequest createRequest = new GithubCreateRequest();
 
-		// Erstelle heutiges Datum
+		// Create timestamp
 		SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
 		Date now = new Date();
 		String date = sdf.format(now);
 
-		// Fülle Request mit Daten
-		// TODO: Dynamische Branches
-		createRequest.setTitle("Bot Pull-Request Refactoring mit '" + gitConfig.getAnalysisService() + "'");
-		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " für den " +  gitConfig.getAnalysisService() + "-Issue '" + issue.getCommentServiceID() + "' erstellt.");
+		// Fill object with data
+		// TODO: Dynamic branches
+		createRequest.setTitle("Bot Pull-Request Refactoring with '" + gitConfig.getAnalysisService() + "'");
+		createRequest.setBody("Created by " + gitConfig.getBotName() + " on " + date + " for the "
+				+ gitConfig.getAnalysisService() + "-Issue '" + issue.getCommentServiceID() + "'.");
 		createRequest.setHead(gitConfig.getBotName() + ":" + newBranch);
 		createRequest.setBase("master");
 		createRequest.setMaintainer_can_modify(true);
 
-		// Gebe Request zurück
 		return createRequest;
 	}
 
 	/**
-	 * Diese Methode holt die tatsächliche Kommentarposition in der Datei.
+	 * This method calculates the position if it is given in the GitHub comment.
 	 * 
 	 * @param githubPosition
 	 * @param diffHunk
@@ -248,17 +246,17 @@ public class GithubObjectTranslator {
 	 */
 	public Integer calculateTrueCommentPosition(String commentBody) {
 
-		// Init Code-Position
+		// Init position
 		int codePosition = -1;
 
-		// Splitte Kommentar nach Leerzeichen
+		// Split comment at whitespace
 		String[] splitString = commentBody.split(" ");
 
-		// Durchsuche Kommentar
+		// Search comment
 		for (int i = 0; i < splitString.length - 1; i++) {
-			// Falls Zeilenangabe gefunden
+			// If 'LINE' exists
 			if (splitString[i].equals("LINE")) {
-				// Versuche in Unteger umzuwandlen
+				// Try to convert following number
 				try {
 					codePosition = Integer.parseInt(splitString[i + 1]);
 				} catch (Exception e) {
@@ -268,35 +266,36 @@ public class GithubObjectTranslator {
 			}
 		}
 
-		// Gebe tatsächliche Position zurück
 		return codePosition;
 	}
 
 	/**
+	 * This method creates an object that can be used reply to a comment on GitHub.
 	 * 
 	 * @param replyTo
 	 * @return comment
 	 */
 	public ReplyComment createReplyComment(BotPullRequestComment replyTo, GitConfiguration gitConfig,
 			String newRequestURL) {
-		// Erstelle Kommentar
+		// Create objcet
 		ReplyComment comment = new ReplyComment();
-		// Fülle mit Daten
+
+		// Fill with data
 		comment.setIn_reply_to(replyTo.getCommentID());
 
-		// Erstelle heutiges Datum
+		// Create timestamp
 		SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
 		Date now = new Date();
 		String date = sdf.format(now);
 
-		// Erstelle Antwort
+		// Create response
 		if (newRequestURL != null) {
-			// Falls neuer Request erstellt wurde auf Kommentar
+			// If new PullRequest created
 			comment.setBody(
-					"Refactored von " + gitConfig.getBotName() + " am " + date + ". Siehe im Request " + newRequestURL + ".");
+					"Refactored by " + gitConfig.getBotName() + " on " + date + ". See request " + newRequestURL + ".");
 		} else {
-			// Falls Request nur aktualisiert wurde
-			comment.setBody("Refactored von " + gitConfig.getBotName() + " am " + date + ".");
+			// If old request updated
+			comment.setBody("Refactored by " + gitConfig.getBotName() + " on " + date + ".");
 		}
 
 		// Gebe Kommentar zurück

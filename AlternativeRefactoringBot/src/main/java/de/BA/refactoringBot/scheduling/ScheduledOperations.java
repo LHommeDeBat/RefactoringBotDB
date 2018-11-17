@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Diese Klasse führt geschedulde Funktionen aus.
+ * This class performs scheduled operations.
  * 
  * @author Stefan Basaric
  *
@@ -20,32 +20,31 @@ public class ScheduledOperations {
 	Integer port;
 
 	/**
-	 * Diese Methode versucht auf allen gängigen OS-Systemen die SwaggerUI im Standardbrowser beim Start
-	 * der Anwendung zum Starten.
+	 * This method opens the Swagger-UI in the browser on startup of the application.
 	 */
 	@PostConstruct
 	public void startSwaggerUI() {
-		// Starte Runtime
+		// Start runtime
 		Runtime runtime = Runtime.getRuntime();
-		// Hole URL
+		// Create URL
 		String url = "http://localhost:" + port + "/swagger-ui.html#";
-		// Prüfe OS-System
+		// Check OS-System
 		String os = System.getProperty("os.name").toLowerCase();
 		try {
-			// Falls OS = Windows
+			// Windows
 			if (os.indexOf("win") >= 0) {
 				runtime.exec("rundll32 url.dll,FileProtocolHandler " + url);
 			}
-			// Falls OS = MAX OS
+			// MacOS
 			if (os.indexOf("mac") >= 0) {
 				runtime.exec("open " + url);
 			}
-			// Falls OS = Linux
+			// Linux
 			if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0) {
 				runtime.exec("xdg-open " + url);
 			}
 		} catch (IOException e) {
-			System.err.println("Konnte SwaggerUI nicht automatisch im Browser starten!");
+			System.err.println("Could not start Swagger-UI in the browser!");
 		}
 	}
 

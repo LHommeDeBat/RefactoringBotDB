@@ -3,7 +3,7 @@ package de.BA.refactoringBot.model.githubModels.pullRequestComment;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PullRequestComments {
+public class GitHubPullRequestComments {
 
 	List<PullRequestComment> comments = new ArrayList<PullRequestComment>();
 

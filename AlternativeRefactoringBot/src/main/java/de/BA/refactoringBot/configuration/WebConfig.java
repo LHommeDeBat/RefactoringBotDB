@@ -5,13 +5,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-/**
- * Diese Klasse konfiguriert die Inhaltsverhandlung. Dies ist nötig damit das
- * REST GET-Mapping von Email-Adressen funktioniert.
- * 
- * @author Stefan Basaric
- *
- */
 @SuppressWarnings("deprecation")
 @Configuration
 public class WebConfig extends WebMvcConfigurerAdapter {
