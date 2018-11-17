@@ -298,7 +298,6 @@ public class GithubObjectTranslator {
 			comment.setBody("Refactored by " + gitConfig.getBotName() + " on " + date + ".");
 		}
 
-		// Gebe Kommentar zurück
 		return comment;
 	}
 

@@ -32,7 +32,7 @@ import de.BA.refactoringBot.model.githubModels.repository.GithubRepository;
 import de.BA.refactoringBot.model.githubModels.user.GithubUser;
 
 /**
- * Diese Klasse holt verschiedenste Daten von der Github-API.
+ * This class communicates with the Github-API.
  * 
  * @author Stefan Basaric
  *

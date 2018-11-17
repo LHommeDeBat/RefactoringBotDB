@@ -160,7 +160,6 @@ public class GitController {
 		try {
 			// Open git folder
 			Git git = Git.open(new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()));
-
 			// Switch branch
 			@SuppressWarnings("unused")
 			Ref ref = git.checkout().setName(branchName).call();
