@@ -17,4 +17,4 @@ server:
 spring:
   profiles: dev
 bot:
-  botRefactoringDirectory: C:/Users/exampleman/examplefolder/BotForks/
+  botRefactoringDirectory: C:/Users/stefa/Bachelorarbeit-Repos/BotForks/
