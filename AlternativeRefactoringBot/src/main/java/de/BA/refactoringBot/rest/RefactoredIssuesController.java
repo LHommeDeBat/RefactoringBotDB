@@ -65,4 +65,15 @@ public class RefactoredIssuesController {
 		return new ResponseEntity<Iterable<RefactoredIssue>>(allIssues, HttpStatus.OK);
 	}
 
+	/**
+	 * This methor deletes all refactored issues from the database.
+	 * 
+	 * @return feedback
+	 */
+	@RequestMapping(value = "/deleteAllIssues", method = RequestMethod.DELETE, produces = "application/json")
+	@ApiOperation(value = "This method deletes all refactored issues from the database (for testing purposes).")
+	public ResponseEntity<?> deleteAllRefactoredIssues() {
+		repo.deleteAll();
+		return new ResponseEntity<String>("All refactored issues deleted!", HttpStatus.OK);
+	}
 }
