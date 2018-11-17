@@ -60,7 +60,8 @@ public class ConfigurationController {
 			@RequestParam(value = "botUsername", required = true, defaultValue = "LHommeDeBot") String botUsername,
 			@RequestParam(value = "botPassword", required = true, defaultValue = "Botboy55") String botPassword,
 			@RequestParam(value = "botToken", required = true) String botToken,
-			@RequestParam(value = "sonarCubeProjectKey", required = false) String sonarCubeProjectKey,
+			@RequestParam(value = "analysisService", required = false, defaultValue = "SonarCube") String analysisService,
+			@RequestParam(value = "analysisServiceProjectKey", required = false) String analysisServiceProjectKey,
 			@RequestParam(value = "maxAmountRequests", required = true, defaultValue = "5") Integer maxAmountRequests) {
 		// Schaue ob Repository schon existiert
 		Optional<GitConfiguration> existsConfig = repo.getConfigByName(repoName, repoOwner);
@@ -73,7 +74,7 @@ public class ConfigurationController {
 		try {
 			// Baue Konfiguration aus dem Repo-Daten
 			GitConfiguration config = grabber.createConfigurationForRepo(repoName, repoOwner, repoService, botUsername,
-					botPassword, botToken, sonarCubeProjectKey, maxAmountRequests, projectRootFolder);
+					botPassword, botToken, analysisService, analysisServiceProjectKey, maxAmountRequests, projectRootFolder);
 			// Speichere Konfiguration in DB
 			GitConfiguration savedConfig = repo.save(config);
 			// Erstelle Ordner für Fork

@@ -26,7 +26,8 @@ public class GitConfiguration {
 	private String botToken;
 	private String forkApiLink;
 	private String forkGitLink;
-	private String sonarCubeProjectKey;
+	private String analysisService;
+	private String analysisServiceProjectKey;
 	private Integer maxAmountRequests;
 	
 	public Long getConfigurationId() {
@@ -113,14 +114,6 @@ public class GitConfiguration {
 		this.forkGitLink = forkGitLink;
 	}
 
-	public String getSonarCubeProjectKey() {
-		return sonarCubeProjectKey;
-	}
-
-	public void setSonarCubeProjectKey(String sonarCubeProjectKey) {
-		this.sonarCubeProjectKey = sonarCubeProjectKey;
-	}
-
 	public Integer getMaxAmountRequests() {
 		return maxAmountRequests;
 	}
@@ -135,6 +128,22 @@ public class GitConfiguration {
 
 	public void setProjectRootFolder(String projectRootFolder) {
 		this.projectRootFolder = projectRootFolder;
+	}
+
+	public String getAnalysisService() {
+		return analysisService;
+	}
+
+	public void setAnalysisService(String analysisService) {
+		this.analysisService = analysisService;
+	}
+
+	public String getAnalysisServiceProjectKey() {
+		return analysisServiceProjectKey;
+	}
+
+	public void setAnalysisServiceProjectKey(String analysisServiceProjectKey) {
+		this.analysisServiceProjectKey = analysisServiceProjectKey;
 	}
 	
 }

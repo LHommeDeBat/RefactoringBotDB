@@ -82,7 +82,8 @@ public class BotController {
 		refactoredIssue.setRepoOwner(gitConfig.getRepoOwner());
 		refactoredIssue.setRepoService(gitConfig.getRepoService());
 		refactoredIssue.setDateOfRefactoring(date);
-		refactoredIssue.setSonarCubeProjectKey(gitConfig.getSonarCubeProjectKey());
+		refactoredIssue.setAnalysisService(gitConfig.getAnalysisService());
+		refactoredIssue.setAnalysisServiceProjectKey(gitConfig.getAnalysisServiceProjectKey());
 		refactoredIssue.setRefactoringOperation(issue.getRefactoringOperation());
 
 		return refactoredIssue;
@@ -112,10 +113,14 @@ public class BotController {
 		refactoredIssue.setRepoService(gitConfig.getRepoService());
 		refactoredIssue.setDateOfRefactoring(date);
 
-		if (gitConfig.getSonarCubeProjectKey() != null) {
-			refactoredIssue.setSonarCubeProjectKey(gitConfig.getSonarCubeProjectKey());
+		if (gitConfig.getAnalysisService() != null) {
+			refactoredIssue.setAnalysisService(gitConfig.getAnalysisService());
 		}
 
+		if(gitConfig.getAnalysisServiceProjectKey() != null) {
+			refactoredIssue.setAnalysisServiceProjectKey(gitConfig.getAnalysisServiceProjectKey());
+		}
+		
 		return refactoredIssue;
 	}
 }

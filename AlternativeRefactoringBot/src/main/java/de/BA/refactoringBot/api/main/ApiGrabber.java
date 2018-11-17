@@ -1,13 +1,17 @@
 package de.BA.refactoringBot.api.main;
 
+import java.util.List;
+
 import javax.naming.OperationNotSupportedException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.BA.refactoringBot.api.github.GithubDataGrabber;
+import de.BA.refactoringBot.api.sonarCube.SonarCubeDataGrabber;
 import de.BA.refactoringBot.controller.github.GithubObjectTranslator;
 import de.BA.refactoringBot.controller.main.BotController;
+import de.BA.refactoringBot.controller.sonarCube.SonarCubeObjectTranslator;
 import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.githubModels.pullRequest.GithubCreateRequest;
@@ -17,6 +21,7 @@ import de.BA.refactoringBot.model.githubModels.pullRequest.GithubUpdateRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequest;
 import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
+import de.BA.refactoringBot.model.sonarQube.SonarCubeIssues;
 
 /**
  * Diese Klasse leitet alle Anfragen an die passenden APIs weiter.
@@ -30,7 +35,11 @@ public class ApiGrabber {
 	@Autowired
 	GithubDataGrabber githubGrabber;
 	@Autowired
+	SonarCubeDataGrabber sonarCubeGrabber;
+	@Autowired
 	GithubObjectTranslator githubTranslator;
+	@Autowired
+	SonarCubeObjectTranslator sonarCubeTranslator;
 	@Autowired
 	BotController botController;
 
@@ -94,8 +103,8 @@ public class ApiGrabber {
 	 * @param gitConfig
 	 * @throws Exception
 	 */
-	public void makeCreateRequest(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig, String botBranchName)
-			throws Exception {
+	public void makeCreateRequest(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig,
+			String botBranchName) throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
@@ -104,29 +113,9 @@ public class ApiGrabber {
 			// Erstelle Request auf Github
 			GithubPullRequest newGithubRequest = githubGrabber.createRequest(createRequest, gitConfig);
 			// Antworte auf an Bot gerichteten Request-Kommentar
-			githubGrabber.responseToBotComment(githubTranslator.createReplyComment(comment, gitConfig, newGithubRequest.getHtmlUrl()), gitConfig,
+			githubGrabber.responseToBotComment(
+					githubTranslator.createReplyComment(comment, gitConfig, newGithubRequest.getHtmlUrl()), gitConfig,
 					request.getRequestNumber());
-			break;
-		}
-	}
-
-	/**
-	 * Diese Methode erstellt einen Request auf einem Filehoster, falls SonarCube zu
-	 * refactorende Issues gefunden hat.
-	 * 
-	 * @param request
-	 * @param gitConfig
-	 * @param newBranch 
-	 * @throws Exception
-	 */
-	public void makeCreateRequestWithSonarQube(BotIssue issue, GitConfiguration gitConfig, String newBranch) throws Exception {
-		// Wähle passenden Service aus
-		switch (gitConfig.getRepoService()) {
-		case "github":
-			// Erstelle Request-Objekt
-			GithubCreateRequest createRequest = githubTranslator.makeCreateRequestWithSonarQube(issue, gitConfig, newBranch);
-			// Erstelle Request auf Github
-			githubGrabber.createRequest(createRequest, gitConfig);
 			break;
 		}
 	}
@@ -145,8 +134,8 @@ public class ApiGrabber {
 	 * @throws Exception
 	 */
 	public GitConfiguration createConfigurationForRepo(String repoName, String repoOwner, String repoService,
-			String botUsername, String botPassword, String botToken, String sonarCubeProjectKey,
-			Integer maxAmountRequests, String projectRootFolder) throws Exception {
+			String botUsername, String botPassword, String botToken, String analysisService,
+			String analysisServiceProjectKey, Integer maxAmountRequests, String projectRootFolder) throws Exception {
 
 		// Initiiere Konfiguration
 		GitConfiguration gitConfig = null;
@@ -162,7 +151,7 @@ public class ApiGrabber {
 
 			// Erstelle Konfiguration und den Fork
 			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
-					repoService, sonarCubeProjectKey, maxAmountRequests, projectRootFolder);
+					repoService, analysisService, analysisServiceProjectKey, maxAmountRequests, projectRootFolder);
 			githubGrabber.createFork(gitConfig);
 			return gitConfig;
 		default:
@@ -220,6 +209,50 @@ public class ApiGrabber {
 		case "github":
 			// Versuche neuen Fork zu erstellen
 			githubGrabber.createFork(gitConfig);
+			break;
+		}
+	}
+
+	/**
+	 * Diese Methode holt die Issues von einer API eines Analysis-Services und gibt
+	 * sie übersetzt zuück.
+	 * 
+	 * @param gitConfig
+	 * @return botIssues
+	 * @throws Exception
+	 */
+	public List<BotIssue> getAnalysisServiceIssues(GitConfiguration gitConfig) throws Exception {
+		// Wähle passenden Service aus
+		switch (gitConfig.getAnalysisService()) {
+		case "sonarcube":
+			// Versuche neuen Fork zu erstellen
+			SonarCubeIssues issues = sonarCubeGrabber.getIssues(gitConfig.getAnalysisServiceProjectKey());
+			List<BotIssue> botIssues = sonarCubeTranslator.translateSonarIssue(issues, gitConfig);
+			return botIssues;
+		default:
+			return null;
+		}
+	}
+	
+	/**
+	 * Diese Methode erstellt einen Request auf einem Filehoster, falls SonarCube zu
+	 * refactorende Issues gefunden hat.
+	 * 
+	 * @param request
+	 * @param gitConfig
+	 * @param newBranch
+	 * @throws Exception
+	 */
+	public void makeCreateRequestWithAnalysisService(BotIssue issue, GitConfiguration gitConfig, String newBranch)
+			throws Exception {
+		// Wähle passenden Service aus
+		switch (gitConfig.getRepoService()) {
+		case "github":
+			// Erstelle Request-Objekt
+			GithubCreateRequest createRequest = githubTranslator.makeCreateRequestWithAnalysisService(issue, gitConfig,
+					newBranch);
+			// Erstelle Request auf Github
+			githubGrabber.createRequest(createRequest, gitConfig);
 			break;
 		}
 	}

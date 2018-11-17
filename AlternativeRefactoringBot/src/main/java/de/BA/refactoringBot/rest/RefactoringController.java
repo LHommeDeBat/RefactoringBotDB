@@ -18,7 +18,7 @@ import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.controller.main.BotController;
 import de.BA.refactoringBot.controller.main.GitController;
 import de.BA.refactoringBot.controller.main.GrammerController;
-import de.BA.refactoringBot.controller.sonarCube.ObjectTranslator;
+import de.BA.refactoringBot.controller.sonarCube.SonarCubeObjectTranslator;
 import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.ConfigurationRepository;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
@@ -27,8 +27,6 @@ import de.BA.refactoringBot.model.outputModel.myPullRequest.BotPullRequests;
 import de.BA.refactoringBot.model.outputModel.myPullRequestComment.BotPullRequestComment;
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssueRepository;
-import de.BA.refactoringBot.model.sonarQube.SonarIssue;
-import de.BA.refactoringBot.model.sonarQube.SonarCubeIssues;
 import de.BA.refactoringBot.refactoring.RefactoringPicker;
 import io.swagger.annotations.ApiOperation;
 
@@ -64,7 +62,7 @@ public class RefactoringController {
 	@Autowired
 	RefactoringPicker refactoring;
 	@Autowired
-	ObjectTranslator sonarTranslator;
+	SonarCubeObjectTranslator sonarTranslator;
 
 	/**
 	 * Diese Methode führt Refactorings anhand von Kommentaren in Pull-Requests aus.
@@ -175,7 +173,7 @@ public class RefactoringController {
 	 * @param configID
 	 * @return allRefactoredIssues
 	 */
-	@RequestMapping(value = "/refactorWithSonarCube/{configID}", method = RequestMethod.GET, produces = "application/json")
+	@RequestMapping(value = "/refactorWithAnalysisService/{configID}", method = RequestMethod.GET, produces = "application/json")
 	@ApiOperation(value = "Führt Refactoring anhand der SonarCube-Issues in einem Repository aus.")
 	public ResponseEntity<?> refactorWithSonarCube(@PathVariable Long configID) {
 
@@ -189,11 +187,10 @@ public class RefactoringController {
 			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",
 					HttpStatus.NOT_FOUND);
 		}
-		// Falls Projekt nicht auf SonarCube gehostet
-		if (gitConfig.get().getSonarCubeProjectKey() == null) {
-			return new ResponseEntity<String>(
-					"Konfiguration besitzt kein SonarCube-Projektkey! Führen Sie Refactorings über Request-Kommentare aus.",
-					HttpStatus.BAD_GATEWAY);
+		// Falls Projekt nicht auf einem AnalysisService gehostet
+		if (gitConfig.get().getAnalysisService() == null || gitConfig.get().getAnalysisServiceProjectKey() == null) {
+			return new ResponseEntity<String>("Konfiguration besitzt nicht alle Daten für den Analysis-Service!",
+					HttpStatus.BAD_REQUEST);
 		}
 
 		try {
@@ -206,17 +203,19 @@ public class RefactoringController {
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		// Initiiere Datenobjekt für die SonarCubeIssues
-		SonarCubeIssues allIssues = null;
-
 		try {
-			// Hole Issues von der SonarCube-API
-			allIssues = sonarCubeGrabber.getIssues(gitConfig.get().getSonarCubeProjectKey());
+			// Hole Issues von der AnalysisService-API
+			List<BotIssue> botIssues = grabber.getAnalysisServiceIssues(gitConfig.get());
+
+			// Falls AnalysisService nicht unterstützt
+			if (botIssues == null) {
+				return new ResponseEntity<String>(
+						"Analysis-Service '" + gitConfig.get().getAnalysisService() + "' wird nicht unterstützt!",
+						HttpStatus.BAD_REQUEST);
+			}
 
 			// Gehe alle Issues durch
-			for (SonarIssue issue : allIssues.getIssues()) {
-				// Übersetze Issue
-				BotIssue botIssue = sonarTranslator.translateSonarIssue(issue, gitConfig.get());
+			for (BotIssue botIssue : botIssues) {
 				// Wenn SonarCube Issue nicht schonmal bearbeitet worden ist
 				if (!issueRepo.refactoredSonarCube(botIssue.getCommentServiceID()).isPresent()) {
 					// TODO: Dynamischer Branch
@@ -238,7 +237,7 @@ public class RefactoringController {
 						// Pushe Änderungen + erstelle Request
 						dataGetter.pushChanges(gitConfig.get(), commitMessage);
 						// Erstelle PullRequest
-						grabber.makeCreateRequestWithSonarQube(botIssue, gitConfig.get(), newBranch);
+						grabber.makeCreateRequestWithAnalysisService(botIssue, gitConfig.get(), newBranch);
 					}
 				}
 			}
@@ -248,33 +247,5 @@ public class RefactoringController {
 			e.printStackTrace();
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	}
-
-	/**
-	 * Diese Methode führt Refactorings anhand von Kommentaren in Pull-Requests aus.
-	 * 
-	 * @param configID
-	 * @return allRequests
-	 */
-	@RequestMapping(value = "/testBranching/{configID}", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "Testroute")
-	public ResponseEntity<?> testBranching(@PathVariable Long configID) {
-
-		// Hole Git-Konfiguration für Bot falls Existiert
-		Optional<GitConfiguration> gitConfig = configRepo.getByID(configID);
-		// Falls nicht existiert
-		if (!gitConfig.isPresent()) {
-			return new ResponseEntity<String>("Konfiguration mit angegebener ID existiert nicht!",
-					HttpStatus.NOT_FOUND);
-		}
-		try {
-			// Hole aktuellste OG-Repo-Daten
-			dataGetter.fetchRemote(gitConfig.get());
-			// dataGetter.switchBranch(gitConfig.get(), "test_PullRequest4");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-		return new ResponseEntity<String>("Fertig!", HttpStatus.OK);
 	}
 }

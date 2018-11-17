@@ -44,13 +44,13 @@ public class GithubObjectTranslator {
 	 * 
 	 * @param repo
 	 * @param repoService
-	 * @param sonarCubeProjectKey
+	 * @param analysusServiceProjectKey
 	 * @param maxAmountRequests
 	 * @param projectRootFolder
 	 * @return
 	 */
 	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername,
-			String botPassword, String botToken, String repoService, String sonarCubeProjectKey,
+			String botPassword, String botToken, String repoService, String analysisService, String analysusServiceProjectKey,
 			Integer maxAmountRequests, String projectRootFolder) {
 		// Erstelle Konfiguration
 		GitConfiguration config = new GitConfiguration();
@@ -65,7 +65,8 @@ public class GithubObjectTranslator {
 		config.setRepoService(repoService.toLowerCase());
 		config.setBotName(botUsername);
 		config.setBotPassword(botPassword);
-		config.setSonarCubeProjectKey(sonarCubeProjectKey);
+		config.setAnalysisService(analysisService.toLowerCase());
+		config.setAnalysisServiceProjectKey(analysusServiceProjectKey);
 		config.setMaxAmountRequests(maxAmountRequests);
 		config.setBotToken(botToken);
 		config.setProjectRootFolder(projectRootFolder);
@@ -217,7 +218,7 @@ public class GithubObjectTranslator {
 	 * @param newBranch 
 	 * @return createRequest
 	 */
-	public GithubCreateRequest makeCreateRequestWithSonarQube(BotIssue issue, GitConfiguration gitConfig, String newBranch) {
+	public GithubCreateRequest makeCreateRequestWithAnalysisService(BotIssue issue, GitConfiguration gitConfig, String newBranch) {
 		// Erstelle Request
 		GithubCreateRequest createRequest = new GithubCreateRequest();
 
@@ -228,8 +229,8 @@ public class GithubObjectTranslator {
 
 		// Fülle Request mit Daten
 		// TODO: Dynamische Branches
-		createRequest.setTitle("Bot Pull-Request Refactoring mit SonarCube");
-		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " für den SonarCube Issue '" + issue.getCommentServiceID() + " 'erstellt.");
+		createRequest.setTitle("Bot Pull-Request Refactoring mit '" + gitConfig.getAnalysisService() + "'");
+		createRequest.setBody("Von " + gitConfig.getBotName() + " am " + date + " für den " +  gitConfig.getAnalysisService() + "-Issue '" + issue.getCommentServiceID() + "' erstellt.");
 		createRequest.setHead(gitConfig.getBotName() + ":" + newBranch);
 		createRequest.setBase("master");
 		createRequest.setMaintainer_can_modify(true);

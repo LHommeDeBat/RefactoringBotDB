@@ -19,7 +19,8 @@ public class RefactoredIssue {
 	private String repoOwner;
 	private String repoService;
 	private String dateOfRefactoring;
-	private String sonarCubeProjectKey;
+	private String analysisService;
+	private String analysisServiceProjectKey;
 	private String refactoringOperation;
 	
 	public Long getIssueId() {
@@ -58,14 +59,6 @@ public class RefactoredIssue {
 		this.dateOfRefactoring = dateOfRefactoring;
 	}
 	
-	public String getSonarCubeProjectKey() {
-		return sonarCubeProjectKey;
-	}
-	
-	public void setSonarCubeProjectKey(String sonarCubeProjectKey) {
-		this.sonarCubeProjectKey = sonarCubeProjectKey;
-	}
-	
 	public String getRefactoringOperation() {
 		return refactoringOperation;
 	}
@@ -80,6 +73,22 @@ public class RefactoredIssue {
 
 	public void setCommentServiceID(String commentServiceID) {
 		this.commentServiceID = commentServiceID;
+	}
+
+	public String getAnalysisService() {
+		return analysisService;
+	}
+
+	public void setAnalysisService(String analysisService) {
+		this.analysisService = analysisService;
+	}
+
+	public String getAnalysisServiceProjectKey() {
+		return analysisServiceProjectKey;
+	}
+
+	public void setAnalysisServiceProjectKey(String analysisServiceProjectKey) {
+		this.analysisServiceProjectKey = analysisServiceProjectKey;
 	}
 	
 }
