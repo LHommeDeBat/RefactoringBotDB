@@ -1,10 +1,10 @@
 spring:
   application:
     name: alternativerefactoringbot
-  datasource: # gitconfig_db and DB-Address = example - replace with own
+  datasource:
     url: jdbc:mysql://localhost:3306/gitconfig_db?verifyServerCertificate=false&useSSL=true
-    username: root # example - replace with own
-    password: root # example - replace with own
+    username: root
+    password: root
   jpa:
     open-in-view: false
     hibernate:
@@ -12,9 +12,9 @@ spring:
   profiles:
     active: "dev"
 server:
-  port: 8808 # example - replace with own
+  port: 8808
 ---
 spring:
   profiles: dev
 bot:
-  botRefactoringDirectory: C:/Users/exampleman/examplefolder/BotForks/ # example - replace with own
+  botRefactoringDirectory: C:/Users/exampleman/examplefolder/BotForks/
