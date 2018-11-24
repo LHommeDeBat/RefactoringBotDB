@@ -265,7 +265,7 @@ public class RefactoringController {
 		}
 		
 		// Perform hardcoded refactoring
-		String commitMessage = test.performRefactoring("C:/Users/stefa/Bachelorarbeit-Repos/Test Pullrequest-Repo/TestPullRequest/src/testPackage/CalcInterface.java", 5, null, gitConfig.get());
+		String commitMessage = test.performRefactoring("C:/Users/stefa/Bachelorarbeit-Repos/Test Pullrequest-Repo/TestPullRequest/src/testPackage/Calc.java", 15, null, gitConfig.get());
 		
 		// If something went wrong
 		if (commitMessage == null) {
