@@ -124,23 +124,8 @@ public class RenameMethod {
 		// If refactor-method not found
 		if (methodToRefactor == null || methodClassSignature == null || globalMethodSignature == null
 				|| localMethodSignature == null) {
-			System.out.println("Method-Object: " + methodToRefactor);
-			System.out.println("Method-Declaration: " + localMethodSignature);
-			System.out.println("Method-Signature: " + globalMethodSignature);
-			System.out.println("Method-Class-Signature: " + methodClassSignature);
-			System.out.println("Old-Method-Name: " + oldMethodName);
 			return null;
 		}
-
-//		// Test output
-//		System.out.println("Method-Object: " + methodToRefactor);
-//		System.out.println("Method-Local-Signature: " + localMethodSignature);
-//		System.out.println("Method-Global-Signature: " + globalMethodSignature);
-//		System.out.println("Method-Class-Signature: " + methodClassSignature);
-//		System.out.println("Old-Method-Name: " + oldMethodName);
-//		for (String implementsSignature : methodClassImplements) {
-//			System.out.println("Class-Implements-Signature: " + implementsSignature);
-//		}
 
 		// Go through all java-files and rename method calls for our method
 		for (String javafile : allJavaFiles) {
