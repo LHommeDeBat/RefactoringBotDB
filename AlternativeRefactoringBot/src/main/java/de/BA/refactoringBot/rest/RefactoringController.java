@@ -264,8 +264,14 @@ public class RefactoringController {
 			return new ResponseEntity<String>("Configuration with the given ID does not exist!", HttpStatus.NOT_FOUND);
 		}
 		
-		test.performRefactoring("C:/Users/stefa/Bachelorarbeit-Repos/Test Pullrequest-Repo/TestPullRequest/src/testPackage/Calc.java", 5, null, gitConfig.get());
-		return new ResponseEntity<String>("Test completed!", HttpStatus.OK);
-
+		// Perform hardcoded refactoring
+		String commitMessage = test.performRefactoring("C:/Users/stefa/Bachelorarbeit-Repos/Test Pullrequest-Repo/TestPullRequest/src/testPackage/CalcInterface.java", 5, null, gitConfig.get());
+		
+		// If something went wrong
+		if (commitMessage == null) {
+			return new ResponseEntity<String>("Could not perform refactoring!", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		return new ResponseEntity<String>(commitMessage, HttpStatus.OK);
 	}
 }

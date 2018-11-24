@@ -6,6 +6,7 @@ public class BotIssue {
 	private String filePath;
 	private Integer line;
 	private String commentServiceID;
+	private String renameString;
 	
 	public String getRefactoringOperation() {
 		return refactoringOperation;
@@ -37,6 +38,14 @@ public class BotIssue {
 
 	public void setCommentServiceID(String commentServiceID) {
 		this.commentServiceID = commentServiceID;
+	}
+
+	public String getRenameString() {
+		return renameString;
+	}
+
+	public void setRenameString(String renameString) {
+		this.renameString = renameString;
 	}
 	
 }
