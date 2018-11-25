@@ -6,7 +6,8 @@ import java.util.List;
 public class ParserRefactoringCollection {
 
 	private List<ParserRefactoring> refactorings = new ArrayList<ParserRefactoring>();
-	private List<String> doneFiles = new ArrayList<String>();
+	private List<String> doneClasses = new ArrayList<String>();
+	private List<String> toDoClasses = new ArrayList<String>();
 
 	public List<ParserRefactoring> getRefactoring() {
 		return refactorings;
@@ -24,19 +25,43 @@ public class ParserRefactoringCollection {
 		this.refactorings.addAll(refactorings);
 	}
 
-	public List<String> getDoneFiles() {
-		return doneFiles;
+	public List<String> getDoneClasses() {
+		return doneClasses;
 	}
 
-	public void setDoneFiles(List<String> doneFiles) {
-		this.doneFiles = doneFiles;
+	public void setDoneClasses(List<String> doneClasses) {
+		this.doneClasses = doneClasses;
 	}
 	
-	public void addDoneFile(String file) {
-		this.doneFiles.add(file);
+	public void addDoneClass(String doneClass) {
+		this.doneClasses.add(doneClass);
 	}
 	
-	public void addDoneFiles(List<String> files) {
-		this.doneFiles.addAll(files);
+	public void addDoneClasses(List<String> doneClasses) {
+		this.doneClasses.addAll(doneClasses);
+	}
+	
+	public void removeDoneClass(String doneClass) {
+		this.doneClasses.remove(doneClass);
+	}
+	
+	public void emptyDoneClass() {
+		this.doneClasses.clear();
+	}
+
+	public List<String> getToDoClasses() {
+		return toDoClasses;
+	}
+
+	public void setToDoClasses(List<String> toDoClasses) {
+		this.toDoClasses = toDoClasses;
+	}
+	
+	public void addToDoClass(String toDoClass) {
+		this.toDoClasses.add(toDoClass);
+	}
+	
+	public void removeToDoClass(String toDoClass) {
+		this.toDoClasses.remove(toDoClass);
 	}
 }

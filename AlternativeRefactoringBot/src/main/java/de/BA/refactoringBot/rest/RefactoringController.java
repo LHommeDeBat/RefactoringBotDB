@@ -30,6 +30,7 @@ import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssueRepository;
 import de.BA.refactoringBot.refactoring.RefactoringPicker;
 import de.BA.refactoringBot.refactoring.supportedRefactorings.RenameMethod;
+import de.BA.refactoringBot.refactoring.supportedRefactorings.RenameMethodTEst;
 import io.swagger.annotations.ApiOperation;
 
 /**
@@ -66,7 +67,7 @@ public class RefactoringController {
 	@Autowired
 	SonarCubeObjectTranslator sonarTranslator;
 	@Autowired
-	RenameMethod test;
+	RenameMethodTEst test;
 
 	/**
 	 * This method performs refactorings with comments within Pull-Requests of a

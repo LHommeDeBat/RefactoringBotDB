@@ -1,5 +1,7 @@
 package de.BA.refactoringBot.model.javaparser;
 
+import java.util.List;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -7,7 +9,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 public class ParserRefactoring {
 
 	private CompilationUnit unit;
-	private MethodCallExpr methodCall;
+	private List<MethodCallExpr> methodCalls;
     private MethodDeclaration method;
 	private String javaFile;
 	
@@ -19,12 +21,16 @@ public class ParserRefactoring {
 		this.unit = unit;
 	}
 
-	public MethodCallExpr getMethodCall() {
-		return methodCall;
+	public List<MethodCallExpr> getMethodCall() {
+		return methodCalls;
 	}
 
-	public void setMethodCall(MethodCallExpr methodCall) {
-		this.methodCall = methodCall;
+	public void setMethodCall(List<MethodCallExpr> methodCalls) {
+		this.methodCalls = methodCalls;
+	}
+	
+	public void addMethodCall(MethodCallExpr methodCall) {
+		this.methodCalls.add(methodCall);
 	}
 
 	public MethodDeclaration getMethod() {

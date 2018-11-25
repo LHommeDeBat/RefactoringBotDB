@@ -1,0 +1,113 @@
+package testPackage;
+
+public class Calc extends SuperCalc implements CalcInterface {
+
+	public Integer addition(int a, int b) {
+		return a - b;
+	}
+
+	@Override
+	public void testInterface2() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void testen() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
