@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.refactoring.supportedRefactorings.AddOverrideAnnotation;
+import de.BA.refactoringBot.refactoring.supportedRefactorings.RenameMethod;
 import de.BA.refactoringBot.refactoring.supportedRefactorings.ReorderModifier;
 
 /**
@@ -21,6 +22,8 @@ public class RefactoringPicker {
 	AddOverrideAnnotation addOverride;
 	@Autowired
 	ReorderModifier reorderModifier;
+	@Autowired
+	RenameMethod renameMethod;
 
 	/**
 	 * This method checks which refactoring needs to be performed. It transfers the
@@ -40,6 +43,8 @@ public class RefactoringPicker {
 				return addOverride.performRefactoring(issue, gitConfig);
 			case "Reorder Modifier":
 				return reorderModifier.performRefactoring(issue, gitConfig);
+			case "Rename Method":
+				// return renameMethod.performRefactoring(issuePath, line, issue, gitConfig);
 			default:
 				return null;
 			}

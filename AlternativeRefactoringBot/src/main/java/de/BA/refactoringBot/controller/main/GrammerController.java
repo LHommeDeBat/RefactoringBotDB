@@ -92,6 +92,16 @@ public class GrammerController {
 				issue.setRefactoringOperation("Reorder Modifier");
 			}
 		}
+		
+		// Rename operations
+		if (commentArr[1].equals("RENAME")) {
+			// Rename method operations
+			if (commentArr[2].equals("METHOD")) {
+			    issue.setRefactoringOperation("Rename Method");
+			    // Set new name of the method
+			    issue.setRenameString(commentArr[6]);
+			}
+		}
 
 		return issue;
 	}
