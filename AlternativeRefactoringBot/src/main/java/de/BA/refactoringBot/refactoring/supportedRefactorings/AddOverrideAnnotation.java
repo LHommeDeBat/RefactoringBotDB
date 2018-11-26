@@ -24,7 +24,7 @@ import de.BA.refactoringBot.model.configuration.GitConfiguration;
  * @author Timo Pfaff
  */
 @Component
-public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
+public class AddOverrideAnnotation {
 
 	@Autowired
 	BotConfiguration botConfig;
