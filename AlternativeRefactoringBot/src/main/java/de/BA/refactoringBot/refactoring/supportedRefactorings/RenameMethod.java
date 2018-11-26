@@ -182,8 +182,7 @@ public class RenameMethod {
 
 				// if refactoring = method declaration
 				if (refactoring.getMethod() != null) {
-					@SuppressWarnings("deprecation")
-					List<MethodDeclaration> methods = compilationUnit.getNodesByType(MethodDeclaration.class);
+					List<MethodDeclaration> methods = compilationUnit.findAll(MethodDeclaration.class);
 					// Search all methods
 					for (MethodDeclaration method : methods) {
 						// If methods match
@@ -195,8 +194,7 @@ public class RenameMethod {
 
 				// If refactoring = method call
 				if (refactoring.getMethodCall() != null) {
-					@SuppressWarnings("deprecation")
-					List<MethodCallExpr> methodCalls = compilationUnit.getNodesByType(MethodCallExpr.class);
+					List<MethodCallExpr> methodCalls = compilationUnit.findAll(MethodCallExpr.class);
 					// Iterate method calls that need refactoring
 					for (MethodCallExpr refExpr : refactoring.getMethodCall()) {
 						// For each method call inside the file
@@ -398,8 +396,7 @@ public class RenameMethod {
 		FileInputStream callMethodPath = new FileInputStream(javafile);
 		CompilationUnit renameMethodCallUnit = LexicalPreservingPrinter.setup(JavaParser.parse(callMethodPath));
 
-		@SuppressWarnings("deprecation")
-		List<MethodCallExpr> methodCalls = renameMethodCallUnit.getNodesByType(MethodCallExpr.class);
+		List<MethodCallExpr> methodCalls = renameMethodCallUnit.findAll(MethodCallExpr.class);
 
 		// Create refactoring
 		ParserRefactoring refactoring = new ParserRefactoring();

@@ -3,6 +3,7 @@ package de.BA.refactoringBot.refactoring.supportedRefactorings;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,9 +26,6 @@ import de.BA.refactoringBot.model.configuration.GitConfiguration;
 @Component
 public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 
-	Integer line;
-	String methodName;
-
 	@Autowired
 	BotConfiguration botConfig;
 
@@ -42,15 +40,30 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 	public String performRefactoring(BotIssue issue, GitConfiguration gitConfig) throws FileNotFoundException {
 		// Prepare data
 		String path = issue.getFilePath();
-		line = issue.getLine();
+		String methodName = null;
 
 		// Read file
 		FileInputStream in = new FileInputStream(
 				botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + path);
 		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(in));
 
-		// Visit place in the code that needs refactoring
-		visit(compilationUnit, null);
+		List<MethodDeclaration> methods = compilationUnit.findAll(MethodDeclaration.class);
+
+		// Search all methods
+		for (MethodDeclaration method : methods) {
+			// If methods match
+			methodName = addAnnotation(method, issue.getLine());
+			
+			// If method found
+			if (methodName != null) {
+				break;
+			}
+		}
+		
+		// If method not found
+		if (methodName == null) {
+			return null;
+		}
 
 		// Save changes to file
 		PrintWriter out = new PrintWriter(
@@ -63,19 +76,23 @@ public class AddOverrideAnnotation extends VoidVisitorAdapter<Object> {
 	}
 
 	/**
-	 * This method adds the annotation to a method at a specific line in the code.
+	 * This method adds the override annotation to a method at a specific line
+	 * inside the java file.
 	 * 
 	 * @param declaration
 	 * @param line
+	 * @return methodName
 	 */
-	public void visit(MethodDeclaration declaration, Object arg) {
-		// If method exists at given line
+	public String addAnnotation(MethodDeclaration declaration, Integer line) {
+        // If method declaration = method that needs refactoring
 		if (line == declaration.getName().getBegin().get().line) {
-			// Read method name
-			methodName = declaration.getNameAsString();
 			// Add annotation
 			declaration.addMarkerAnnotation("Override");
+
+			// return method name
+			return declaration.getNameAsString();
 		}
+		return null;
 	}
 
 }
