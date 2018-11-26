@@ -148,7 +148,6 @@ public class GithubObjectTranslator {
 			translatedComment.setFilepath(githubComment.getPath());
 			translatedComment.setUsername(githubComment.getUser().getLogin());
 			translatedComment.setCommentBody(githubComment.getBody());
-			translatedComment.setPosition(calculateTrueCommentPosition(githubComment.getBody()));
 
 			// Add comment to list
 			translatedComments.addComment(translatedComment);
@@ -235,38 +234,6 @@ public class GithubObjectTranslator {
 		createRequest.setMaintainer_can_modify(true);
 
 		return createRequest;
-	}
-
-	/**
-	 * This method calculates the position if it is given in the GitHub comment.
-	 * 
-	 * @param githubPosition
-	 * @param diffHunk
-	 * @return truePosition
-	 */
-	public Integer calculateTrueCommentPosition(String commentBody) {
-
-		// Init position
-		int codePosition = -1;
-
-		// Split comment at whitespace
-		String[] splitString = commentBody.split(" ");
-
-		// Search comment
-		for (int i = 0; i < splitString.length - 1; i++) {
-			// If 'LINE' exists
-			if (splitString[i].equals("LINE")) {
-				// Try to convert following number
-				try {
-					codePosition = Integer.parseInt(splitString[i + 1]);
-				} catch (Exception e) {
-					e.printStackTrace();
-					codePosition = -1;
-				}
-			}
-		}
-
-		return codePosition;
 	}
 
 	/**

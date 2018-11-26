@@ -61,48 +61,59 @@ public class GrammerController {
 	 * 
 	 * @param comment
 	 * @return issue
+	 * @throws Exception 
 	 */
-	public BotIssue createIssueFromComment(BotPullRequestComment comment) {
-		// Create object
-		BotIssue issue = new BotIssue();
+	public BotIssue createIssueFromComment(BotPullRequestComment comment) throws Exception {
+		try {
+			// Create object
+			BotIssue issue = new BotIssue();
 
-		// Split comment at whitespace
-		String[] commentArr = comment.getCommentBody().split(" ");
+			// Split comment at whitespace
+			String[] commentArr = comment.getCommentBody().split(" ");
 
-		// Add data to comment
-		issue.setCommentServiceID(comment.getCommentID().toString());
-		issue.setLine(comment.getPosition());
-		issue.setFilePath(comment.getFilepath());
+			// Add data to comment
+			issue.setCommentServiceID(comment.getCommentID().toString());
+			issue.setLine(comment.getPosition());
+			issue.setFilePath(comment.getFilepath());
 
-		// Add operations
-		if (commentArr[1].equals("ADD")) {
-			// Add annotations
-			if (commentArr[2].equals("ANNOTATION")) {
-				// Add override annotation
-				if (commentArr[3].equals("Override")) {
-					issue.setRefactoringOperation("Add Override Annotation");
+			// Add operations
+			if (commentArr[1].equals("ADD")) {
+				// Add annotations
+				if (commentArr[2].equals("ANNOTATION")) {
+					// Add override annotation
+					if (commentArr[3].equals("Override")) {
+						issue.setRefactoringOperation("Add Override Annotation");
+					}
 				}
 			}
-		}
 
-		// Reorder operations
-		if (commentArr[1].equals("REORDER")) {
-			// Reorder modifier operation
-			if (commentArr[2].equals("MODIFIER")) {
-				issue.setRefactoringOperation("Reorder Modifier");
+			// Reorder operations
+			if (commentArr[1].equals("REORDER")) {
+				// Reorder modifier operation
+				if (commentArr[2].equals("MODIFIER")) {
+					issue.setRefactoringOperation("Reorder Modifier");
+				}
 			}
-		}
-		
-		// Rename operations
-		if (commentArr[1].equals("RENAME")) {
-			// Rename method operations
-			if (commentArr[2].equals("METHOD")) {
-			    issue.setRefactoringOperation("Rename Method");
-			    // Set new name of the method
-			    issue.setRenameString(commentArr[6]);
-			}
-		}
 
-		return issue;
+			// Rename operations
+			if (commentArr[1].equals("RENAME")) {
+				// Rename method operations
+				if (commentArr[2].equals("METHOD")) {
+					issue.setRefactoringOperation("Rename Method");
+					// Set new name of the method
+					issue.setRenameString(commentArr[6]);
+				}
+			}
+
+			for (int i = 0; i < commentArr.length - 1; i++) {
+				if (commentArr[i].equals("LINE")) {
+					issue.setLine(Integer.valueOf(commentArr[i + 1]));
+				}
+			}
+			return issue;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new Exception("Could not create a BotIssue from the comment '" + comment.getCommentBody() + "'!");
+		}
 	}
 }

@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.github.javaparser.JavaParser;
@@ -27,16 +28,32 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
+import de.BA.refactoringBot.configuration.BotConfiguration;
 import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.model.javaparser.ParserRefactoring;
 import de.BA.refactoringBot.model.javaparser.ParserRefactoringCollection;
 
+/**
+ * This refactoring class is used for renaming methods inside a java project.
+ *
+ * @author Stefan Basaric
+ */
 @Component
 public class RenameMethod {
 
-	public String performRefactoring(String issuePath, Integer line, BotIssue issue, GitConfiguration gitConfig)
-			throws IOException {
+	@Autowired
+	BotConfiguration botConfig;
+
+	/**
+	 * This method performs the refactoring and returns the a commit message.
+	 * 
+	 * @param issue
+	 * @param gitConfig
+	 * @return commitMessage
+	 * @throws IOException
+	 */
+	public String performRefactoring(BotIssue issue, GitConfiguration gitConfig) throws IOException {
 
 		// Init Refactorings
 		ParserRefactoringCollection allRefactorings = new ParserRefactoringCollection();
@@ -45,6 +62,7 @@ public class RenameMethod {
 		List<String> allJavaFiles = new ArrayList<String>();
 
 		// Init needed variables
+		String issueFilePath = botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + issue.getFilePath();
 		String globalMethodSignature = null;
 		String localMethodSignature = null;
 		String methodClassSignature = null;
@@ -52,10 +70,8 @@ public class RenameMethod {
 		MethodDeclaration methodToRefactor = null;
 
 		// Get root folder of project
-		File dir = new File(/*
-							 * botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/"
-							 * + gitConfig.getProjectRootFolder()
-							 */ "C:/Users/stefa/Bachelorarbeit-Repos/Test Pullrequest-Repo/TestPullRequest");
+		File dir = new File(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/"
+				+ gitConfig.getProjectRootFolder());
 
 		// Get paths to all java files of the project
 		List<File> files = (List<File>) FileUtils.listFiles(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
@@ -67,14 +83,14 @@ public class RenameMethod {
 
 		// Configure solver for the project
 		CombinedTypeSolver typeSolver = new CombinedTypeSolver();
-		typeSolver.add(new JavaParserTypeSolver(
-				"C:/Users/stefa/Bachelorarbeit-Repos/Test Pullrequest-Repo/TestPullRequest/src"));
+		typeSolver.add(new JavaParserTypeSolver(botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId()
+				+ "/" + gitConfig.getProjectRootFolder() + "/src"));
 		typeSolver.add(new ReflectionTypeSolver());
 		JavaSymbolSolver javaSymbolSolver = new JavaSymbolSolver(typeSolver);
 		JavaParser.getStaticConfiguration().setSymbolResolver(javaSymbolSolver);
 
 		// Read file
-		FileInputStream methodPath = new FileInputStream(issuePath);
+		FileInputStream methodPath = new FileInputStream(issueFilePath);
 		CompilationUnit renameMethodUnit = LexicalPreservingPrinter.setup(JavaParser.parse(methodPath));
 
 		// Search all Types
@@ -87,8 +103,8 @@ public class RenameMethod {
 				// Search methods
 				for (MethodDeclaration method : methods) {
 					// check if method = desired method
-					globalMethodSignature = getFullMethodSignature(method, line);
-					localMethodSignature = getMethodDeclarationAsString(method, line);
+					globalMethodSignature = getFullMethodSignature(method, issue.getLine());
+					localMethodSignature = getMethodDeclarationAsString(method, issue.getLine());
 					oldMethodName = method.getNameAsString();
 					// If it is
 					if (globalMethodSignature != null) {
@@ -110,7 +126,7 @@ public class RenameMethod {
 		allRefactorings.addToDoClass(methodClassSignature);
 
 		// Create super tree recursively
-		allRefactorings = getSuperTree(allRefactorings, allJavaFiles, issuePath);
+		allRefactorings = getSuperTree(allRefactorings, allJavaFiles, issueFilePath);
 
 		// Add sub tree recursively
 		while (true) {
@@ -138,11 +154,9 @@ public class RenameMethod {
 			}
 		}
 
-		System.out.println("Amount of refactorings: " + allRefactorings.getRefactoring().size());
+		renameFindings(allRefactorings, allJavaFiles, issue.getRenameString());
 
-		renameFindings(allRefactorings, allJavaFiles, "esGehtImmerNoch");
-
-		return "Renamed method '" + oldMethodName + "' to '" + /* issue.getRenameString() + */ "'";
+		return "Renamed method '" + oldMethodName + "' to '" + issue.getRenameString() + "'";
 	}
 
 	/**

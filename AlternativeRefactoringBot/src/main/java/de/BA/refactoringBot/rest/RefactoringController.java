@@ -1,6 +1,5 @@
 package de.BA.refactoringBot.rest;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +28,6 @@ import de.BA.refactoringBot.model.outputModel.botPullRequestComment.BotPullReque
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssue;
 import de.BA.refactoringBot.model.refactoredIssue.RefactoredIssueRepository;
 import de.BA.refactoringBot.refactoring.RefactoringPicker;
-import de.BA.refactoringBot.refactoring.supportedRefactorings.RenameMethod;
 import io.swagger.annotations.ApiOperation;
 
 /**
@@ -65,8 +63,6 @@ public class RefactoringController {
 	RefactoringPicker refactoring;
 	@Autowired
 	SonarCubeObjectTranslator sonarTranslator;
-	@Autowired
-	RenameMethod test;
 
 	/**
 	 * This method performs refactorings with comments within Pull-Requests of a
@@ -110,7 +106,13 @@ public class RefactoringController {
 						.refactoredComment(gitConfig.get().getRepoService(), comment.getCommentID().toString())
 						.isPresent()) {
 					// Create issue
-					BotIssue botIssue = grammarController.createIssueFromComment(comment);
+					BotIssue botIssue;
+					try {
+						botIssue = grammarController.createIssueFromComment(comment);
+					} catch (Exception e) {
+						return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+					}
+
 
 					try {
 						// For Requests created by someone else
@@ -251,27 +253,5 @@ public class RefactoringController {
 			e.printStackTrace();
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	}
-
-	@RequestMapping(value = "/testRenameMethod/{configID}", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "Test rename method.")
-	public ResponseEntity<?> testRenameMethod(@PathVariable Long configID) throws IOException {
-
-		// Try to get the Git-Configuration with the given ID
-		Optional<GitConfiguration> gitConfig = configRepo.getByID(configID);
-		// If configuration does not exist
-		if (!gitConfig.isPresent()) {
-			return new ResponseEntity<String>("Configuration with the given ID does not exist!", HttpStatus.NOT_FOUND);
-		}
-		
-		// Perform hardcoded refactoring
-		String commitMessage = test.performRefactoring("C:/Users/stefa/Bachelorarbeit-Repos/Test Pullrequest-Repo/TestPullRequest/src/testPackage/Calc.java", 15, null, gitConfig.get());
-		
-		// If something went wrong
-		if (commitMessage == null) {
-			return new ResponseEntity<String>("Could not perform refactoring!", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-		
-		return new ResponseEntity<String>(commitMessage, HttpStatus.OK);
 	}
 }

@@ -44,7 +44,7 @@ public class RefactoringPicker {
 			case "Reorder Modifier":
 				return reorderModifier.performRefactoring(issue, gitConfig);
 			case "Rename Method":
-				// return renameMethod.performRefactoring(issuePath, line, issue, gitConfig);
+			    return renameMethod.performRefactoring(issue, gitConfig);
 			default:
 				return null;
 			}
