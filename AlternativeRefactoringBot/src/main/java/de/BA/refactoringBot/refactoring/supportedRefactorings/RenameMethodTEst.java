@@ -140,31 +140,67 @@ public class RenameMethodTEst {
 
 		System.out.println("Amount of refactorings: " + allRefactorings.getRefactoring().size());
 
-		for (ParserRefactoring refactoring : allRefactorings.getRefactoring()) {
+		renameFindings(allRefactorings, allJavaFiles, "esGeht");
 
-			// If refactoring both call and method -> error
-			if (refactoring.getMethod() != null && refactoring.getMethodCall() != null) {
-				return null;
-			}
+		return "Renamed method '" + oldMethodName + "' to '" + /* issue.getRenameString() + */ "'";
+	}
 
-			if (refactoring.getMethod() != null) {
-				performRenameMethod(refactoring.getMethod(), "vielleichtNet");
-			}
+	/**
+	 * This method renames all findings of method declarations and method calls
+	 * inside the java project.
+	 * 
+	 * @param allRefactorings
+	 * @param allJavaFiles
+	 * @param newName
+	 * @throws FileNotFoundException
+	 */
+	private void renameFindings(ParserRefactoringCollection allRefactorings, List<String> allJavaFiles, String newName)
+			throws FileNotFoundException {
 
-			if (refactoring.getMethodCall() != null) {
-				System.out.println("Hier!");
-				for (MethodCallExpr expr: refactoring.getMethodCall()) {
-					performRenameMethodCall(expr, "vielleichtNet");
+		// Iterate all java files
+		for (String javaFile : allJavaFiles) {
+			// Create compilation unit
+			FileInputStream methodPath = new FileInputStream(javaFile);
+			CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(methodPath));
+
+			// for each refactoring
+			for (ParserRefactoring refactoring : allRefactorings.getRefactoring()) {
+
+				// if refactoring = method declaration
+				if (refactoring.getMethod() != null) {
+					@SuppressWarnings("deprecation")
+					List<MethodDeclaration> methods = compilationUnit.getNodesByType(MethodDeclaration.class);
+					// Search all methods
+					for (MethodDeclaration method : methods) {
+						// If methods match
+						if (method.equals(refactoring.getMethod())) {
+							performRenameMethod(method, newName);
+						}
+					}
+				}
+
+				// If refactoring = method call
+				if (refactoring.getMethodCall() != null) {
+					@SuppressWarnings("deprecation")
+					List<MethodCallExpr> methodCalls = compilationUnit.getNodesByType(MethodCallExpr.class);
+					// Iterate method calls that need refactoring
+					for (MethodCallExpr refExpr : refactoring.getMethodCall()) {
+						// For each method call inside the file
+						for (MethodCallExpr expr : methodCalls) {
+							// If method calls match
+							if (expr.equals(refExpr)) {
+								performRenameMethodCall(expr, newName);
+							}
+						}
+					}
 				}
 			}
 
 			// Save changes to file
-			PrintWriter out = new PrintWriter(refactoring.getJavaFile());
-			out.println(LexicalPreservingPrinter.print(refactoring.getUnit()));
+			PrintWriter out = new PrintWriter(javaFile);
+			out.println(LexicalPreservingPrinter.print(compilationUnit));
 			out.close();
 		}
-
-		return "Renamed method '" + oldMethodName + "' to '" + /* issue.getRenameString() + */ "'";
 	}
 
 	/**
@@ -350,7 +386,7 @@ public class RenameMethodTEst {
 
 		@SuppressWarnings("deprecation")
 		List<MethodCallExpr> methodCalls = renameMethodCallUnit.getNodesByType(MethodCallExpr.class);
-		
+
 		// Create refactoring
 		ParserRefactoring refactoring = new ParserRefactoring();
 		List<MethodCallExpr> validCalls = new ArrayList<MethodCallExpr>();
@@ -362,16 +398,16 @@ public class RenameMethodTEst {
 				validCalls.add(checkMethodCall(methodCall, methodSignature));
 			}
 		}
-		
+
 		// Fill refactoring with data
 		refactoring.setJavaFile(javafile);
 		refactoring.setUnit(renameMethodCallUnit);
-		
+
 		// If no valid call found
 		if (validCalls.isEmpty()) {
 			return refactorings;
 		}
-		
+
 		refactoring.setMethodCall(validCalls);
 		refactorings.addRefactoring(refactoring);
 
@@ -468,6 +504,6 @@ public class RenameMethodTEst {
 	 * @param newName
 	 */
 	private void performRenameMethodCall(MethodCallExpr methodCall, String newName) {
-			methodCall.setName(newName);
+		methodCall.setName(newName);
 	}
 }
