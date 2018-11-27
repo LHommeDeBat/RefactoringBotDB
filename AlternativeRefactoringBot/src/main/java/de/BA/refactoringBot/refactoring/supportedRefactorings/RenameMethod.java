@@ -126,11 +126,12 @@ public class RenameMethod {
 		// Add class to the TO-DO list
 		allRefactorings.addToDoClass(methodClassSignature);
 
+		// Create super tree recursively
+		allRefactorings = getSuperTree(allRefactorings, allJavaFiles, issueFilePath);
+
 		// Add sub tree recursively
 		while (true) {
-			// Create super tree recursively
-			allRefactorings = getSuperTree(allRefactorings, allJavaFiles, issueFilePath);
-			
+
 			// Count classes before adding subclasses
 			int beforeSubtree = allRefactorings.getDoneClasses().size();
 
