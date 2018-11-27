@@ -53,6 +53,9 @@ public class SonarCubeObjectTranslator {
 			case "squid:ModifiersOrderCheck":
 				botIssue.setRefactoringOperation("Reorder Modifier");
 				break;
+                        case "squid:CommentedOutCodeLine":
+                                botIssue.setRefactoringOperation("Remove Commented Out Code");
+                                break;
 			default:
 				botIssue.setRefactoringOperation("Unknown Refactoring");
 				break;
