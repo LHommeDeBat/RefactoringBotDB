@@ -18,6 +18,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
@@ -34,12 +35,14 @@ import de.BA.refactoringBot.model.javaparser.ParserRefactoring;
 import de.BA.refactoringBot.model.javaparser.ParserRefactoringCollection;
 
 /**
- * This refactoring class is used for renaming methods inside a java project.
- *
+ * This refactoring class is used for removing unused parameters of methods of a
+ * java project.
+ * 
  * @author Stefan Basaric
+ *
  */
 @Component
-public class RenameMethod {
+public class RemoveMethodParameter {
 
 	@Autowired
 	BotConfiguration botConfig;
@@ -67,6 +70,7 @@ public class RenameMethod {
 		String localMethodSignature = null;
 		String methodClassSignature = null;
 		String oldMethodName = null;
+		Integer paramPosition = null;
 		MethodDeclaration methodToRefactor = null;
 
 		// Get root folder of project
@@ -104,13 +108,14 @@ public class RenameMethod {
 			// Search methods
 			for (MethodDeclaration method : methods) {
 				// check if method = desired method
-				globalMethodSignature = getFullMethodSignature(method, issue.getLine());
+				globalMethodSignature = getFullMethodSignature(method, issue.getLine(), issue.getRefactorString());
 				localMethodSignature = getMethodDeclarationAsString(method, issue.getLine());
 				oldMethodName = method.getNameAsString();
 				// If it is
 				if (globalMethodSignature != null) {
 					// Set method and class signatures of the method
 					methodToRefactor = method;
+					paramPosition = getMethodParameterPosition(method, issue.getRefactorString());
 					methodClassSignature = currentClass.resolve().getQualifiedName();
 					foundMethod = true;
 					break;
@@ -160,9 +165,9 @@ public class RenameMethod {
 			}
 		}
 
-		renameFindings(allRefactorings, allJavaFiles, issue.getRefactorString());
+		removeParameter(allRefactorings, allJavaFiles, issue.getRefactorString(), paramPosition);
 
-		return "Renamed method '" + oldMethodName + "' to '" + issue.getRefactorString() + "'";
+		return "Removed method parameter '" + issue.getRefactorString() + "' of method '" + oldMethodName + "'";
 	}
 
 	/**
@@ -171,11 +176,12 @@ public class RenameMethod {
 	 * 
 	 * @param allRefactorings
 	 * @param allJavaFiles
-	 * @param newName
+	 * @param parameterName
+	 * @param paramPosition
 	 * @throws FileNotFoundException
 	 */
-	private void renameFindings(ParserRefactoringCollection allRefactorings, List<String> allJavaFiles, String newName)
-			throws FileNotFoundException {
+	private void removeParameter(ParserRefactoringCollection allRefactorings, List<String> allJavaFiles,
+			String parameterName, Integer paramPosition) throws FileNotFoundException {
 
 		// Iterate all java files
 		for (String javaFile : allJavaFiles) {
@@ -193,7 +199,7 @@ public class RenameMethod {
 					for (MethodDeclaration method : methods) {
 						// If methods match
 						if (method.equals(refactoring.getMethod())) {
-							performRenameMethod(method, newName);
+							performRemoveMethodParameter(method, parameterName);
 						}
 					}
 				}
@@ -207,7 +213,7 @@ public class RenameMethod {
 						for (MethodCallExpr expr : methodCalls) {
 							// If method calls match
 							if (expr.equals(refExpr)) {
-								performRenameMethodCall(expr, newName);
+								performRemoveMethodCallParameter(expr, paramPosition);
 							}
 						}
 					}
@@ -460,9 +466,10 @@ public class RenameMethod {
 	 * @param position
 	 * @return
 	 */
-	private String getFullMethodSignature(MethodDeclaration methodDeclaration, Integer position) {
-		// If method is at the refactored position
-		if (position == methodDeclaration.getBegin().get().line) {
+	private String getFullMethodSignature(MethodDeclaration methodDeclaration, Integer position, String parameterName) {
+		// If method is at the refactored position and parameter exists
+		if (position == methodDeclaration.getBegin().get().line
+				&& methodDeclaration.getParameterByName(parameterName).isPresent()) {
 			ResolvedMethodDeclaration resolvedMethod = methodDeclaration.resolve();
 			return resolvedMethod.getQualifiedSignature();
 		}
@@ -497,6 +504,26 @@ public class RenameMethod {
 	}
 
 	/**
+	 * This method returns the position of the method parameter.
+	 * 
+	 * @param methodDeclaration
+	 * @param parameterName
+	 * @return position
+	 */
+	private Integer getMethodParameterPosition(MethodDeclaration methodDeclaration, String parameterName) {
+		// Get parameters of method
+		NodeList<Parameter> parameters = methodDeclaration.getParameters();
+		// Search them
+		for (int i = 0; i < parameters.size(); i++) {
+			// If parameter found (needs to be since it was checked first)
+			if (parameters.get(i).getName().asString().equals(parameterName)) {
+				return i;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * This method returns the local signature of a method as a string.
 	 * 
 	 * @param methodDeclaration
@@ -508,23 +535,23 @@ public class RenameMethod {
 	}
 
 	/**
-	 * This method performs the renaming of the method inside the local class.
+	 * This method performs the removing of a specific parameter of the method.
 	 * 
 	 * @param methodDeclaration
 	 * @param position
-	 * @param newName
+	 * @param parameterName
 	 */
-	private void performRenameMethod(MethodDeclaration methodDeclaration, String newName) {
-		methodDeclaration.setName(newName);
+	private void performRemoveMethodParameter(MethodDeclaration methodDeclaration, String parameterName) {
+		methodDeclaration.getParameterByName(parameterName).get().remove();
 	}
 
 	/**
 	 * This method performs the renaming of a method call.
 	 * 
 	 * @param methodCall
-	 * @param newName
+	 * @param paramPosition
 	 */
-	private void performRenameMethodCall(MethodCallExpr methodCall, String newName) {
-		methodCall.setName(newName);
+	private void performRemoveMethodCallParameter(MethodCallExpr methodCall, Integer paramPosition) {
+		methodCall.getArgument(paramPosition).remove();
 	}
 }

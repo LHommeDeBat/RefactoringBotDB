@@ -84,6 +84,8 @@ public class GrammerController {
 					if (commentArr[3].equals("Override")) {
 						issue.setRefactoringOperation("Add Override Annotation");
 					}
+					// Add line/position
+					issue.setLine(Integer.valueOf(commentArr[5]));
 				}
 			}
 
@@ -101,14 +103,22 @@ public class GrammerController {
 				if (commentArr[2].equals("METHOD")) {
 					issue.setRefactoringOperation("Rename Method");
 					// Set new name of the method
-					issue.setRenameString(commentArr[6]);
+					issue.setRefactorString(commentArr[6]);
 				}
+				// Add line/position
+				issue.setLine(Integer.valueOf(commentArr[4]));
 			}
-
-			for (int i = 0; i < commentArr.length - 1; i++) {
-				if (commentArr[i].equals("LINE")) {
-					issue.setLine(Integer.valueOf(commentArr[i + 1]));
+			
+			// Remove operations
+			if (commentArr[1].equals("REMOVE")) {
+				// Remove method parameter
+				if (commentArr[2].equals("PARAMETER")) {
+					issue.setRefactoringOperation("Remove Parameter");
+					// Set name of the parameter
+					issue.setRefactorString(commentArr[6]);
 				}
+				// Add line/position
+				issue.setLine(Integer.valueOf(commentArr[4]));
 			}
 			return issue;
 		} catch (Exception e) {

@@ -6,7 +6,7 @@ public class BotIssue {
 	private String filePath;
 	private Integer line;
 	private String commentServiceID;
-	private String renameString;
+	private String refactorString;
 	
 	public String getRefactoringOperation() {
 		return refactoringOperation;
@@ -40,12 +40,12 @@ public class BotIssue {
 		this.commentServiceID = commentServiceID;
 	}
 
-	public String getRenameString() {
-		return renameString;
+	public String getRefactorString() {
+		return refactorString;
 	}
 
-	public void setRenameString(String renameString) {
-		this.renameString = renameString;
+	public void setRefactorString(String refactorString) {
+		this.refactorString = refactorString;
 	}
 	
 }

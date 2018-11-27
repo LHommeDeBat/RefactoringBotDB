@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import de.BA.refactoringBot.model.botIssue.BotIssue;
 import de.BA.refactoringBot.model.configuration.GitConfiguration;
 import de.BA.refactoringBot.refactoring.supportedRefactorings.AddOverrideAnnotation;
+import de.BA.refactoringBot.refactoring.supportedRefactorings.RemoveMethodParameter;
 import de.BA.refactoringBot.refactoring.supportedRefactorings.RenameMethod;
 import de.BA.refactoringBot.refactoring.supportedRefactorings.ReorderModifier;
 
@@ -24,6 +25,8 @@ public class RefactoringPicker {
 	ReorderModifier reorderModifier;
 	@Autowired
 	RenameMethod renameMethod;
+	@Autowired
+	RemoveMethodParameter removeMethodParameter;
 
 	/**
 	 * This method checks which refactoring needs to be performed. It transfers the
@@ -45,6 +48,8 @@ public class RefactoringPicker {
 				return reorderModifier.performRefactoring(issue, gitConfig);
 			case "Rename Method":
 			    return renameMethod.performRefactoring(issue, gitConfig);
+			case "Remove Parameter":
+				return removeMethodParameter.performRefactoring(issue, gitConfig);
 			default:
 				return null;
 			}
