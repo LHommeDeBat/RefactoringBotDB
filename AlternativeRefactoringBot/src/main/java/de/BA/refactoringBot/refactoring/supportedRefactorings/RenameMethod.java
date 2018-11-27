@@ -62,7 +62,8 @@ public class RenameMethod {
 		List<String> allJavaFiles = new ArrayList<String>();
 
 		// Init needed variables
-		String issueFilePath = botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/" + issue.getFilePath();
+		String issueFilePath = botConfig.getBotRefactoringDirectory() + gitConfig.getConfigurationId() + "/"
+				+ issue.getFilePath();
 		String globalMethodSignature = null;
 		String localMethodSignature = null;
 		String methodClassSignature = null;
@@ -125,17 +126,17 @@ public class RenameMethod {
 		// Add class to the TO-DO list
 		allRefactorings.addToDoClass(methodClassSignature);
 
-		// Create super tree recursively
-		allRefactorings = getSuperTree(allRefactorings, allJavaFiles, issueFilePath);
-
 		// Add sub tree recursively
 		while (true) {
+			// Create super tree recursively
+			allRefactorings = getSuperTree(allRefactorings, allJavaFiles, issueFilePath);
+			
 			// Count classes before adding subclasses
 			int beforeSubtree = allRefactorings.getDoneClasses().size();
 
 			// Add subclasses
 			for (String javaFile : allJavaFiles) {
-				allRefactorings = addSubTree(allRefactorings, javaFile);
+				allRefactorings = addSubTree(allRefactorings, allJavaFiles, javaFile);
 			}
 
 			// Count classes after adding subclasses
@@ -240,8 +241,9 @@ public class RenameMethod {
 			// If type = class
 			if (type.isClassOrInterfaceDeclaration()) {
 				ClassOrInterfaceDeclaration classOrInterface = type.asClassOrInterfaceDeclaration();
-				// Check if
-				if (allRefactorings.getToDoClasses().contains(classOrInterface.resolve().getQualifiedName())) {
+				// Check if class in todo list and not in done list
+				if (allRefactorings.getToDoClasses().contains(classOrInterface.resolve().getQualifiedName())
+						&& !allRefactorings.getDoneClasses().contains(classOrInterface.resolve().getQualifiedName())) {
 					classSignature = classOrInterface.resolve().getQualifiedName();
 					// Check all implements + extends classes/interfaces
 					NodeList<ClassOrInterfaceType> impl = classOrInterface.getImplementedTypes();
@@ -284,12 +286,13 @@ public class RenameMethod {
 	 * This method adds all subclasses to the already created super class tree.
 	 * 
 	 * @param allRefactorings
+	 * @param allJavaFiles
 	 * @param currentJavaFile
 	 * @return
 	 * @throws FileNotFoundException
 	 */
-	private ParserRefactoringCollection addSubTree(ParserRefactoringCollection allRefactorings, String currentJavaFile)
-			throws FileNotFoundException {
+	private ParserRefactoringCollection addSubTree(ParserRefactoringCollection allRefactorings,
+			List<String> allJavaFiles, String currentJavaFile) throws FileNotFoundException {
 		// parse a file
 		FileInputStream filepath = new FileInputStream(currentJavaFile);
 		CompilationUnit compilationUnit = LexicalPreservingPrinter.setup(JavaParser.parse(filepath));
@@ -307,17 +310,22 @@ public class RenameMethod {
 					// If class implements of one of the done classes
 					for (int i = 0; i < impl.size(); i++) {
 						if (allRefactorings.getDoneClasses().contains(impl.get(i).resolve().getQualifiedName())) {
-							allRefactorings.addDoneClass(classOrInterface.resolve().getQualifiedName());
+							allRefactorings.addToDoClass(classOrInterface.resolve().getQualifiedName());
 						}
 					}
 					// If class extends of one of the done classes
 					for (int i = 0; i < ext.size(); i++) {
 						if (allRefactorings.getDoneClasses().contains(ext.get(i).resolve().getQualifiedName())) {
-							allRefactorings.addDoneClass(classOrInterface.resolve().getQualifiedName());
+							allRefactorings.addToDoClass(classOrInterface.resolve().getQualifiedName());
 						}
 					}
 				}
 			}
+		}
+
+		// Recursively build super class tree
+		for (String javaFile : allJavaFiles) {
+			allRefactorings = getSuperTree(allRefactorings, allJavaFiles, javaFile);
 		}
 
 		return allRefactorings;
