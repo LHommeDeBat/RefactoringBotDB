@@ -88,7 +88,7 @@ public class ApiGrabber {
 			// Update Request
 			githubGrabber.updatePullRequest(updateRequest, gitConfig, request.getRequestNumber());
 			// Reply to comment
-			githubGrabber.responseToBotComment(githubTranslator.createReplyComment(comment, gitConfig, null), gitConfig,
+			githubGrabber.testAgainStuff(githubTranslator.createReplyComment(comment, gitConfig, null), gitConfig,
 					request.getRequestNumber());
 			break;
 		}
@@ -111,7 +111,7 @@ public class ApiGrabber {
 			// Create request
 			GithubPullRequest newGithubRequest = githubGrabber.createRequest(createRequest, gitConfig);
 			// Reply to comment
-			githubGrabber.responseToBotComment(
+			githubGrabber.testAgainStuff(
 					githubTranslator.createReplyComment(comment, gitConfig, newGithubRequest.getHtmlUrl()), gitConfig,
 					request.getRequestNumber());
 			break;
@@ -233,3 +233,4 @@ public class ApiGrabber {
 		}
 	}
 }
+

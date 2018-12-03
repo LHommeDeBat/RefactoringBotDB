@@ -110,7 +110,7 @@ public class GithubDataGrabber {
 			throw new Exception("Invalid Bot-Token!");
 		}
 
-		// PrÃ¼fe Usernamen
+		// Prüfe Usernamen
 		if (!githubUser.getLogin().equals(botUsername)) {
 			throw new Exception("Bot-User does not exist on Github!");
 		}
@@ -259,7 +259,7 @@ public class GithubDataGrabber {
 	 * @param requestNumber
 	 * @throws Exception
 	 */
-	public void responseToBotComment(ReplyComment comment, GitConfiguration gitConfig, Integer requestNumber)
+	public void testAgainStuff(ReplyComment comment, GitConfiguration gitConfig, Integer requestNumber)
 			throws Exception {
 		// Read URI from configuration
 		URI configUri = null;
@@ -395,3 +395,4 @@ public class GithubDataGrabber {
 	}
 
 }
+
