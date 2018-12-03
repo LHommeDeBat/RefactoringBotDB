@@ -106,7 +106,7 @@ public class RefactoringController {
 						.refactoredComment(gitConfig.get().getRepoService(), comment.getCommentID().toString())
 						.isPresent()) {
 					// Create issue
-					BotIssue botIssue = grammarController.createIssueFromComment(comment);
+					BotIssue botIssue = grammarController.testStfff(comment);
 
 					try {
 						// For Requests created by someone else
@@ -250,3 +250,4 @@ public class RefactoringController {
 		}
 	}
 }
+

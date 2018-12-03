@@ -62,7 +62,7 @@ public class GrammerController {
 	 * @param comment
 	 * @return issue
 	 */
-	public BotIssue createIssueFromComment(BotPullRequestComment comment) {
+	public BotIssue testStfff(BotPullRequestComment comment) {
 		// Create object
 		BotIssue issue = new BotIssue();
 
@@ -96,3 +96,4 @@ public class GrammerController {
 		return issue;
 	}
 }
+
