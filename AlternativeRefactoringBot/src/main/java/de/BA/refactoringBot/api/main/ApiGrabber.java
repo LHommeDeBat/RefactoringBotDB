@@ -40,11 +40,11 @@ public class ApiGrabber {
 	 * @return botRequests
 	 * @throws Exception
 	 */
-	public BotPullRequests getRequestsWithComments(GitConfiguration gitConfig) throws Exception {
+	public BotPullRequests testJars(GitConfiguration gitConfig) throws Exception {
 		// Erstelle Request-Objekt
 		BotPullRequests botRequests = null;
 
-		// WÃ¤hle passenden Service aus
+		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
 			// Hole Requests von Github
@@ -69,7 +69,7 @@ public class ApiGrabber {
 	 */
 	public void makeUpdateRequest(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig)
 			throws Exception {
-		// WÃ¤hle passenden Service aus
+		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
 			// Erstelle aktualisierten Request
@@ -87,15 +87,15 @@ public class ApiGrabber {
 
 	/**
 	 * Diese Methode erstellt einen PullRequest auf Github, falls der Request,
-	 * welcher Refactored wurde, nicht dem Bot gehÃ¶hrt und er dementsprechend fÃ¼r
-	 * die Bearbeitung keine Rechte hat,Â´.
+	 * welcher Refactored wurde, nicht dem Bot gehöhrt und er dementsprechend für
+	 * die Bearbeitung keine Rechte hat,´.
 	 * 
 	 * @param request
 	 * @param gitConfig
 	 * @throws Exception
 	 */
 	public void makeCreateRequest(BotPullRequest request, GitConfiguration gitConfig) throws Exception {
-		// WÃ¤hle passenden Service aus
+		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
 			// Erstelle Request-Objekt
@@ -107,7 +107,7 @@ public class ApiGrabber {
 	}
 
 	/**
-	 * Schaue ob das Repository existiert und erstelle dafÃ¼r eine Konfiguration.
+	 * Schaue ob das Repository existiert und erstelle dafür eine Konfiguration.
 	 * 
 	 * @param repoName
 	 * @param repoOwner
@@ -125,13 +125,13 @@ public class ApiGrabber {
 		// Initiiere Konfiguration
 		GitConfiguration gitConfig = null;
 
-		// WÃ¤hle passenden Service aus
+		// Wähle passenden Service aus
 		switch (repoService.toLowerCase()) {
 		case "github":
-			// PrÃ¼fe Repo-Existenz
+			// Prüfe Repo-Existenz
 			githubGrabber.checkRepository(repoName, repoOwner);
 
-			// PrÃ¼fe Bot-User-Existenz + Token gÃ¼ltigkeit
+			// Prüfe Bot-User-Existenz + Token gültigkeit
 			githubGrabber.checkGithubUser(botUsername, botToken);
 
 			// Erstelle Konfiguration und den Fork
@@ -140,12 +140,12 @@ public class ApiGrabber {
 			githubGrabber.createFork(gitConfig);
 			return gitConfig;
 		default:
-			throw new Exception("Filehoster " + "'" + repoService + "' wird nicht unterstÃ¼tzt!");
+			throw new Exception("Filehoster " + "'" + repoService + "' wird nicht unterstützt!");
 		}
 	}
 
 	/**
-	 * Diese Methode lÃ¶scht das Repository eines Filehosters nachdem die
+	 * Diese Methode löscht das Repository eines Filehosters nachdem die
 	 * Konfiguration aus der DB des Serivices entfernt wurde.
 	 * 
 	 * @param gitConfig
@@ -153,10 +153,10 @@ public class ApiGrabber {
 	 * @throws OperationNotSupportedException
 	 */
 	public void deleteRepository(GitConfiguration gitConfig) throws Exception {
-		// WÃ¤hle passenden Service aus
+		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
-			// Versuche Repo zu lÃ¶schen
+			// Versuche Repo zu löschen
 			githubGrabber.deleteRepository(gitConfig);
 			break;
 		}
@@ -170,10 +170,10 @@ public class ApiGrabber {
 	 * @throws Exception
 	 */
 	public void resetFork(GitConfiguration gitConfig) throws Exception {
-		// WÃ¤hle passenden Service aus
+		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
-			// Versuche Repo (Fork) zu lÃ¶schen
+			// Versuche Repo (Fork) zu löschen
 			githubGrabber.deleteRepository(gitConfig);
 			// Versuche neuen Fork zu erstellen
 			githubGrabber.createFork(gitConfig);
@@ -181,3 +181,4 @@ public class ApiGrabber {
 		}
 	}
 }
+

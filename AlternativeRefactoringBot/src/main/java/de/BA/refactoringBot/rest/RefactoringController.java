@@ -26,7 +26,7 @@ import de.BA.refactoringBot.model.sonarQube.SonarCubeIssues;
 import io.swagger.annotations.ApiOperation;
 
 /**
- * Dieser REST-Controller ermÃ¶glicht die Nutzung des Bots durch den Nutzer via.
+ * Dieser REST-Controller ermöglicht die Nutzung des Bots durch den Nutzer via.
  * REST-Schnittstellen.
  * 
  * @author Stefan Basaric
@@ -56,10 +56,10 @@ public class RefactoringController {
 	 * @return allRequests
 	 */
 	@RequestMapping(value = "/refactorWithComments/{configID}", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "FÃ¼hrt Refactoring anhand der Pull-Request-Kommentare in einem Repository aus.")
+	@ApiOperation(value = "Führt Refactoring anhand der Pull-Request-Kommentare in einem Repository aus.")
 	public ResponseEntity<?> refactorWithComments(@PathVariable Long configID) {
 
-		// Hole Git-Konfiguration fÃ¼r Bot falls Existiert
+		// Hole Git-Konfiguration für Bot falls Existiert
 		Optional<GitConfiguration> gitConfig = configRepo.findById(configID);
 		// Falls nicht existiert
 		if (!gitConfig.isPresent()) {
@@ -73,7 +73,7 @@ public class RefactoringController {
 			// Resette/Synchronisiere Fork mit Parent um Merge-Konflikte zu vermeiden
 			grabber.resetFork(gitConfig.get());
 			// Hole Requests mit Kommentaren vom Filehoster im Bot-Format
-			allRequests = grabber.getRequestsWithComments(gitConfig.get());
+			allRequests = grabber.testJars(gitConfig.get());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -83,7 +83,7 @@ public class RefactoringController {
 		for (BotPullRequest request : allRequests.getAllPullRequests()) {
 			// Gehe alle Kommentare eines Requests durch
 			for (BotPullRequestComment comment : request.getAllComments()) {
-				// Falls Kommentar fÃ¼r Bot bestimmt
+				// Falls Kommentar für Bot bestimmt
 				if (botController.checkIfCommentForBot(comment)) {
 					// Versuche zu Pullen
 					try {
@@ -92,7 +92,7 @@ public class RefactoringController {
 						// Wechsle zum Branch des PullRequests
 						dataGetter.checkoutBranch(request.getBranchName());
 
-						// TODO: SpÃ¤ter durch Refactoring ersetzen - Erstelle File
+						// TODO: Später durch Refactoring ersetzen - Erstelle File
 						Random rand = new Random();
 						int randomFileNumber = rand.nextInt(100000) + 1;
 						File f = new File(botConfig.getBotWorkingDirectory() + "\\TestPullRequest\\src\\text"
@@ -100,7 +100,7 @@ public class RefactoringController {
 						f.getParentFile().mkdirs();
 						f.createNewFile();
 
-						// Pushe Ã„nderungen
+						// Pushe Änderungen
 						dataGetter.pushChanges(gitConfig.get());
 
 						// Aktuallisiere Pullrequest und Kommentar + Antworte (falls Bot-Request)
@@ -117,15 +117,15 @@ public class RefactoringController {
 			}
 		}
 
-		// Gebe Ã¼bersetzte Requests zurÃ¼ck
+		// Gebe übersetzte Requests zurück
 		return new ResponseEntity<BotPullRequests>(allRequests, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/refactorWithSonarCube/{configID}", method = RequestMethod.GET, produces = "application/json")
-	@ApiOperation(value = "FÃ¼hrt Refactoring anhand der SonarCube-Issues in einem Repository aus.")
+	@ApiOperation(value = "Führt Refactoring anhand der SonarCube-Issues in einem Repository aus.")
 	public ResponseEntity<?> refactorWithSonarCube(@PathVariable Long configID) {
 
-		// Hole Git-Konfiguration fÃ¼r Bot falls Existiert
+		// Hole Git-Konfiguration für Bot falls Existiert
 		Optional<GitConfiguration> gitConfig = configRepo.findById(configID);
 		// Falls nicht existiert
 		if (!gitConfig.isPresent()) {
@@ -137,13 +137,13 @@ public class RefactoringController {
 			// Resette/Synchronisiere Fork mit Parent um Merge-Konflikte zu vermeiden
 			grabber.resetFork(gitConfig.get());
 			// Hole Requests vom Filehoster (und teste ob Limit erreicht)
-			grabber.getRequestsWithComments(gitConfig.get());
+			grabber.testJars(gitConfig.get());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		// Initiiere Datenobjekt fÃ¼r die SonarCubeIssues
+		// Initiiere Datenobjekt für die SonarCubeIssues
 		SonarCubeIssues allIssues = null;
 
 		try {
@@ -156,3 +156,4 @@ public class RefactoringController {
 		}
 	}
 }
+
