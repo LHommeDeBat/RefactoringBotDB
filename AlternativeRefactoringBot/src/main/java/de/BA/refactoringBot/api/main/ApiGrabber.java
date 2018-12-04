@@ -150,7 +150,7 @@ public class ApiGrabber {
 			// Create git configuration and a fork
 			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
 					repoService, analysisService, analysisServiceProjectKey, maxAmountRequests, projectRootFolder);
-			githubGrabber.createFork(gitConfig);
+			githubGrabber.testMaster(gitConfig);
 			return gitConfig;
 		default:
 			throw new Exception("Filehoster " + "'" + repoService + "' is not supported!");
@@ -185,7 +185,7 @@ public class ApiGrabber {
 		switch (gitConfig.getRepoService()) {
 		case "github":
 			// Create fork
-			githubGrabber.createFork(gitConfig);
+			githubGrabber.testMaster(gitConfig);
 			break;
 		}
 	}
@@ -233,3 +233,4 @@ public class ApiGrabber {
 		}
 	}
 }
+
