@@ -44,6 +44,7 @@ public class SonarCubeObjectTranslator {
 			// Fill object
 			botIssue.setLine(issue.getLine());
 			botIssue.setCommentServiceID(issue.getKey());
+                        botIssue.setCreationDate(issue.getCreationDate());
 
 			// Translate SonarCube rule
 			switch (issue.getRule()) {
