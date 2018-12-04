@@ -145,7 +145,7 @@ public class ApiGrabber {
 			githubGrabber.checkRepository(repoName, repoOwner);
 
 			// Check bot user and bot token
-			githubGrabber.checkGithubUser(botUsername, botToken);
+			githubGrabber.testMaster(botUsername, botToken);
 
 			// Create git configuration and a fork
 			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
@@ -233,3 +233,4 @@ public class ApiGrabber {
 		}
 	}
 }
+

@@ -86,7 +86,7 @@ public class GithubDataGrabber {
 	 * @return
 	 * @throws Exception
 	 */
-	public void checkGithubUser(String botUsername, String botToken) throws Exception {
+	public void testMaster(String botUsername, String botToken) throws Exception {
 		// Build URI
 		UriComponentsBuilder apiUriBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
 				.path("/user");
@@ -110,7 +110,7 @@ public class GithubDataGrabber {
 			throw new Exception("Invalid Bot-Token!");
 		}
 
-		// PrÃ¼fe Usernamen
+		// Prüfe Usernamen
 		if (!githubUser.getLogin().equals(botUsername)) {
 			throw new Exception("Bot-User does not exist on Github!");
 		}
@@ -395,3 +395,4 @@ public class GithubDataGrabber {
 	}
 
 }
+
