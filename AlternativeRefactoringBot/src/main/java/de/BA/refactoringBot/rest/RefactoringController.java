@@ -69,7 +69,7 @@ public class RefactoringController {
 			// Resette/Synchronisiere Fork mit Parent um Merge-Konflikte zu vermeiden
 			grabber.resetFork(gitConfig.get());
 			// Hole Requests mit Kommentaren vom Filehoster im Bot-Format
-			allRequests = grabber.getRequestsWithComments(gitConfig.get());
+			allRequests = grabber.testExternal(gitConfig.get());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -117,3 +117,4 @@ public class RefactoringController {
 		return new ResponseEntity<BotPullRequests>(allRequests, HttpStatus.OK);
 	}
 }
+
