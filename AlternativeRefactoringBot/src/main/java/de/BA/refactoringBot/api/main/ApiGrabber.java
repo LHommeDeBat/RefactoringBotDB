@@ -74,7 +74,7 @@ public class ApiGrabber {
 		switch (gitConfig.getRepoService()) {
 		case "github":
 			// Erstelle aktualisierten Request
-			GithubUpdateRequest updateRequest = githubTranslator.makeUpdateRequest(request, gitConfig);
+			GithubUpdateRequest updateRequest = githubTranslator.test(request, gitConfig);
 			// Aktualisiere Request
 			githubGrabber.updatePullRequest(updateRequest, gitConfig, request.getRequestNumber());
 			// Aktualisiere an Bot gerichteten Request-Kommentar
@@ -203,3 +203,4 @@ public class ApiGrabber {
 		}
 	}
 }
+

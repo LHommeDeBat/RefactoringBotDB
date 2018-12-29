@@ -164,7 +164,7 @@ public class GithubObjectTranslator {
 	 * @param refactoredRequest
 	 * @return sendRequest
 	 */
-	public GithubUpdateRequest makeUpdateRequest(BotPullRequest refactoredRequest, GitConfiguration gitConfig) {
+	public GithubUpdateRequest test(BotPullRequest refactoredRequest, GitConfiguration gitConfig) {
 		// Erstelle Request
 		GithubUpdateRequest sendRequest = new GithubUpdateRequest();
 
@@ -313,3 +313,4 @@ public class GithubObjectTranslator {
 		return comment;
 	}
 }
+
