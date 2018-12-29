@@ -40,7 +40,7 @@ public class ApiGrabber {
 	 * @return botRequests
 	 * @throws Exception 
 	 */
-	public BotPullRequests getRequestsWithComments(GitConfiguration gitConfig) throws Exception {
+	public BotPullRequests testOwn(GitConfiguration gitConfig) throws Exception {
 		// Erstelle Request-Objekt
 		BotPullRequests botRequests = null;
 
@@ -178,3 +178,4 @@ public class ApiGrabber {
 		}
 	}
 }
+
