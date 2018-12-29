@@ -166,7 +166,7 @@ public class ApiGrabber {
 	 * @param gitConfig
 	 * @throws Exception 
 	 */
-	public void resetFork(GitConfiguration gitConfig) throws Exception {
+	public void testOwnAgain(GitConfiguration gitConfig) throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
@@ -178,3 +178,4 @@ public class ApiGrabber {
 		}
 	}
 }
+
