@@ -116,7 +116,7 @@ public class ApiGrabber {
 	 * @throws Exception
 	 */
 	@Override
-	public void makeCreateRequestWithSonarQube(Issue issue, GitConfiguration gitConfig) throws Exception {
+	public void testAgain(Issue issue, GitConfiguration gitConfig) throws Exception {
 		// Wähle passenden Service aus
 		switch (gitConfig.getRepoService()) {
 		case "github":
@@ -204,4 +204,5 @@ public class ApiGrabber {
 		}
 	}
 }
+
 
