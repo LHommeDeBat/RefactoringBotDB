@@ -68,6 +68,7 @@ public class ApiGrabber {
 	 * @throws Exception
 	 * @throws OperationNotSupportedException
 	 */
+	@Override
 	public void makeUpdateRequest(BotPullRequest request, BotPullRequestComment comment, GitConfiguration gitConfig)
 			throws Exception {
 		// Wähle passenden Service aus
@@ -203,3 +204,4 @@ public class ApiGrabber {
 		}
 	}
 }
+
