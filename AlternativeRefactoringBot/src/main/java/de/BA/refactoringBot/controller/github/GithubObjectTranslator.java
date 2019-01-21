@@ -50,6 +50,7 @@ public class GithubObjectTranslator {
 	 * @param projectRootFolder 
 	 * @return
 	 */
+	@Override
 	public GitConfiguration createConfig(String repoName, String repoOwner, String botUsername,
 			String botPassword, String botToken, String repoService, String sonarCubeProjectKey, Integer maxAmountRequests, String projectRootFolder) {
 		// Erstelle Konfiguration
@@ -313,4 +314,5 @@ public class GithubObjectTranslator {
 		return comment;
 	}
 }
+
 
