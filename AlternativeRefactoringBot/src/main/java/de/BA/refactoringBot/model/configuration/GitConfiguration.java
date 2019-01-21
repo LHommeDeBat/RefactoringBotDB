@@ -73,6 +73,7 @@ public class GitConfiguration {
 		this.repoService = repoService;
 	}
 
+	@Override
 	public String getBotName() {
 		return botName;
 	}
@@ -138,3 +139,4 @@ public class GitConfiguration {
 	}
 	
 }
+
