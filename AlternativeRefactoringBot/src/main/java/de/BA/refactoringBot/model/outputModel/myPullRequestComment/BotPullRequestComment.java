@@ -1,6 +1,6 @@
 package de.BA.refactoringBot.model.outputModel.myPullRequestComment;
 
-public class MyPullRequestComment {
+public class BotPullRequestComment {
 
 	private Integer commentID;
 	private String username;

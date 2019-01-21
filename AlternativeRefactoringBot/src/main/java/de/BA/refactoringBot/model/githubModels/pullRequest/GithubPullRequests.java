@@ -3,7 +3,7 @@ package de.BA.refactoringBot.model.githubModels.pullRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PullRequests {
+public class GithubPullRequests {
 
 	List<PullRequest> allPullRequests = new ArrayList<PullRequest>();
 

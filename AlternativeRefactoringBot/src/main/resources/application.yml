@@ -17,7 +17,4 @@ server:
 spring:
   profiles: dev
 bot:
-  botUsername: LHommeDeBot
-  botPassword: Botboy55
-  botToken: 186c62963544b8a90c6fab4299e6f8d6c6eabb9c
-  botWorkingDirectory: C:\\Users\\stefa\\Bachelorarbeit-Repos\\PullFolder\\workingRepo
+  botRefactoringDirectory: C:/Users/stefa/Bachelorarbeit-Repos/PullFolder/workingRepo/

@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.BA</groupId>
-	<artifactId>GitHupApiTest</artifactId>
+	<artifactId>AlternativeRefactoringBot</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -74,10 +74,17 @@
 			<scope>runtime</scope>
 		</dependency>
 
-        <!-- Für PATCH-Requests -->
+		<!-- Für PATCH-Requests -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
+		</dependency>
+
+		<!-- JavaParser vom OG-Bot -->
+		<dependency>
+			<groupId>com.github.javaparser</groupId>
+			<artifactId>javaparser-core</artifactId>
+			<version>3.6.20</version>
 		</dependency>
 	</dependencies>
 

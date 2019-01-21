@@ -1,10 +1,8 @@
 package de.BA.refactoringBot.model.githubModels.pullRequest;
 
-public class GithubSendPullRequest {
+public class GithubUpdateRequest {
 
 	private String title;
-	private String state;
-	private String base;
 	private String body;
 	private boolean maintainer_can_modify;
 	
@@ -14,14 +12,6 @@ public class GithubSendPullRequest {
 	
 	public void setTitle(String title) {
 		this.title = title;
-	}
-	
-	public String getBase() {
-		return base;
-	}
-	
-	public void setBase(String base) {
-		this.base = base;
 	}
 	
 	public String getBody() {
@@ -38,14 +28,6 @@ public class GithubSendPullRequest {
 	
 	public void setMaintainer_can_modify(boolean maintainer_can_modify) {
 		this.maintainer_can_modify = maintainer_can_modify;
-	}
-	
-	public String getState() {
-		return state;
-	}
-	
-	public void setState(String state) {
-		this.state = state;
 	}
 	
 }

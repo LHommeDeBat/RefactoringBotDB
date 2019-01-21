@@ -91,7 +91,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "network_count",
     "subscribers_count"
 })
-public class Repository {
+public class GithubRepository {
 
     @JsonProperty("id")
     private Integer id;

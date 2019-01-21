@@ -1,7 +1,8 @@
 
-package de.BA.refactoringBot.model.githubModels.collaboration.invite;
+package de.BA.refactoringBot.model.githubModels.fork;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -58,9 +59,37 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "subscription_url",
     "tags_url",
     "teams_url",
-    "trees_url"
+    "trees_url",
+    "clone_url",
+    "mirror_url",
+    "hooks_url",
+    "svn_url",
+    "homepage",
+    "language",
+    "forks_count",
+    "stargazers_count",
+    "watchers_count",
+    "size",
+    "default_branch",
+    "open_issues_count",
+    "topics",
+    "has_issues",
+    "has_projects",
+    "has_wiki",
+    "has_pages",
+    "has_downloads",
+    "archived",
+    "pushed_at",
+    "created_at",
+    "updated_at",
+    "permissions",
+    "allow_rebase_merge",
+    "allow_squash_merge",
+    "allow_merge_commit",
+    "subscribers_count",
+    "network_count"
 })
-public class Repository {
+public class GithubFork {
 
     @JsonProperty("id")
     private Integer id;
@@ -156,6 +185,62 @@ public class Repository {
     private String teamsUrl;
     @JsonProperty("trees_url")
     private String treesUrl;
+    @JsonProperty("clone_url")
+    private String cloneUrl;
+    @JsonProperty("mirror_url")
+    private String mirrorUrl;
+    @JsonProperty("hooks_url")
+    private String hooksUrl;
+    @JsonProperty("svn_url")
+    private String svnUrl;
+    @JsonProperty("homepage")
+    private String homepage;
+    @JsonProperty("language")
+    private Object language;
+    @JsonProperty("forks_count")
+    private Integer forksCount;
+    @JsonProperty("stargazers_count")
+    private Integer stargazersCount;
+    @JsonProperty("watchers_count")
+    private Integer watchersCount;
+    @JsonProperty("size")
+    private Integer size;
+    @JsonProperty("default_branch")
+    private String defaultBranch;
+    @JsonProperty("open_issues_count")
+    private Integer openIssuesCount;
+    @JsonProperty("topics")
+    private List<String> topics = null;
+    @JsonProperty("has_issues")
+    private Boolean hasIssues;
+    @JsonProperty("has_projects")
+    private Boolean hasProjects;
+    @JsonProperty("has_wiki")
+    private Boolean hasWiki;
+    @JsonProperty("has_pages")
+    private Boolean hasPages;
+    @JsonProperty("has_downloads")
+    private Boolean hasDownloads;
+    @JsonProperty("archived")
+    private Boolean archived;
+    @JsonProperty("pushed_at")
+    private String pushedAt;
+    @JsonProperty("created_at")
+    private String createdAt;
+    @JsonProperty("updated_at")
+    private String updatedAt;
+    @JsonProperty("permissions")
+    private Permissions permissions;
+    @JsonProperty("allow_rebase_merge")
+    private Boolean allowRebaseMerge;
+    @JsonProperty("allow_squash_merge")
+    private Boolean allowSquashMerge;
+    @JsonProperty("allow_merge_commit")
+    private Boolean allowMergeCommit;
+    @JsonProperty("subscribers_count")
+    private Integer subscribersCount;
+    @JsonProperty("network_count")
+    private Integer networkCount;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -627,6 +712,286 @@ public class Repository {
     @JsonProperty("trees_url")
     public void setTreesUrl(String treesUrl) {
         this.treesUrl = treesUrl;
+    }
+
+    @JsonProperty("clone_url")
+    public String getCloneUrl() {
+        return cloneUrl;
+    }
+
+    @JsonProperty("clone_url")
+    public void setCloneUrl(String cloneUrl) {
+        this.cloneUrl = cloneUrl;
+    }
+
+    @JsonProperty("mirror_url")
+    public String getMirrorUrl() {
+        return mirrorUrl;
+    }
+
+    @JsonProperty("mirror_url")
+    public void setMirrorUrl(String mirrorUrl) {
+        this.mirrorUrl = mirrorUrl;
+    }
+
+    @JsonProperty("hooks_url")
+    public String getHooksUrl() {
+        return hooksUrl;
+    }
+
+    @JsonProperty("hooks_url")
+    public void setHooksUrl(String hooksUrl) {
+        this.hooksUrl = hooksUrl;
+    }
+
+    @JsonProperty("svn_url")
+    public String getSvnUrl() {
+        return svnUrl;
+    }
+
+    @JsonProperty("svn_url")
+    public void setSvnUrl(String svnUrl) {
+        this.svnUrl = svnUrl;
+    }
+
+    @JsonProperty("homepage")
+    public String getHomepage() {
+        return homepage;
+    }
+
+    @JsonProperty("homepage")
+    public void setHomepage(String homepage) {
+        this.homepage = homepage;
+    }
+
+    @JsonProperty("language")
+    public Object getLanguage() {
+        return language;
+    }
+
+    @JsonProperty("language")
+    public void setLanguage(Object language) {
+        this.language = language;
+    }
+
+    @JsonProperty("forks_count")
+    public Integer getForksCount() {
+        return forksCount;
+    }
+
+    @JsonProperty("forks_count")
+    public void setForksCount(Integer forksCount) {
+        this.forksCount = forksCount;
+    }
+
+    @JsonProperty("stargazers_count")
+    public Integer getStargazersCount() {
+        return stargazersCount;
+    }
+
+    @JsonProperty("stargazers_count")
+    public void setStargazersCount(Integer stargazersCount) {
+        this.stargazersCount = stargazersCount;
+    }
+
+    @JsonProperty("watchers_count")
+    public Integer getWatchersCount() {
+        return watchersCount;
+    }
+
+    @JsonProperty("watchers_count")
+    public void setWatchersCount(Integer watchersCount) {
+        this.watchersCount = watchersCount;
+    }
+
+    @JsonProperty("size")
+    public Integer getSize() {
+        return size;
+    }
+
+    @JsonProperty("size")
+    public void setSize(Integer size) {
+        this.size = size;
+    }
+
+    @JsonProperty("default_branch")
+    public String getDefaultBranch() {
+        return defaultBranch;
+    }
+
+    @JsonProperty("default_branch")
+    public void setDefaultBranch(String defaultBranch) {
+        this.defaultBranch = defaultBranch;
+    }
+
+    @JsonProperty("open_issues_count")
+    public Integer getOpenIssuesCount() {
+        return openIssuesCount;
+    }
+
+    @JsonProperty("open_issues_count")
+    public void setOpenIssuesCount(Integer openIssuesCount) {
+        this.openIssuesCount = openIssuesCount;
+    }
+
+    @JsonProperty("topics")
+    public List<String> getTopics() {
+        return topics;
+    }
+
+    @JsonProperty("topics")
+    public void setTopics(List<String> topics) {
+        this.topics = topics;
+    }
+
+    @JsonProperty("has_issues")
+    public Boolean getHasIssues() {
+        return hasIssues;
+    }
+
+    @JsonProperty("has_issues")
+    public void setHasIssues(Boolean hasIssues) {
+        this.hasIssues = hasIssues;
+    }
+
+    @JsonProperty("has_projects")
+    public Boolean getHasProjects() {
+        return hasProjects;
+    }
+
+    @JsonProperty("has_projects")
+    public void setHasProjects(Boolean hasProjects) {
+        this.hasProjects = hasProjects;
+    }
+
+    @JsonProperty("has_wiki")
+    public Boolean getHasWiki() {
+        return hasWiki;
+    }
+
+    @JsonProperty("has_wiki")
+    public void setHasWiki(Boolean hasWiki) {
+        this.hasWiki = hasWiki;
+    }
+
+    @JsonProperty("has_pages")
+    public Boolean getHasPages() {
+        return hasPages;
+    }
+
+    @JsonProperty("has_pages")
+    public void setHasPages(Boolean hasPages) {
+        this.hasPages = hasPages;
+    }
+
+    @JsonProperty("has_downloads")
+    public Boolean getHasDownloads() {
+        return hasDownloads;
+    }
+
+    @JsonProperty("has_downloads")
+    public void setHasDownloads(Boolean hasDownloads) {
+        this.hasDownloads = hasDownloads;
+    }
+
+    @JsonProperty("archived")
+    public Boolean getArchived() {
+        return archived;
+    }
+
+    @JsonProperty("archived")
+    public void setArchived(Boolean archived) {
+        this.archived = archived;
+    }
+
+    @JsonProperty("pushed_at")
+    public String getPushedAt() {
+        return pushedAt;
+    }
+
+    @JsonProperty("pushed_at")
+    public void setPushedAt(String pushedAt) {
+        this.pushedAt = pushedAt;
+    }
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    @JsonProperty("created_at")
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    @JsonProperty("updated_at")
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @JsonProperty("permissions")
+    public Permissions getPermissions() {
+        return permissions;
+    }
+
+    @JsonProperty("permissions")
+    public void setPermissions(Permissions permissions) {
+        this.permissions = permissions;
+    }
+
+    @JsonProperty("allow_rebase_merge")
+    public Boolean getAllowRebaseMerge() {
+        return allowRebaseMerge;
+    }
+
+    @JsonProperty("allow_rebase_merge")
+    public void setAllowRebaseMerge(Boolean allowRebaseMerge) {
+        this.allowRebaseMerge = allowRebaseMerge;
+    }
+
+    @JsonProperty("allow_squash_merge")
+    public Boolean getAllowSquashMerge() {
+        return allowSquashMerge;
+    }
+
+    @JsonProperty("allow_squash_merge")
+    public void setAllowSquashMerge(Boolean allowSquashMerge) {
+        this.allowSquashMerge = allowSquashMerge;
+    }
+
+    @JsonProperty("allow_merge_commit")
+    public Boolean getAllowMergeCommit() {
+        return allowMergeCommit;
+    }
+
+    @JsonProperty("allow_merge_commit")
+    public void setAllowMergeCommit(Boolean allowMergeCommit) {
+        this.allowMergeCommit = allowMergeCommit;
+    }
+
+    @JsonProperty("subscribers_count")
+    public Integer getSubscribersCount() {
+        return subscribersCount;
+    }
+
+    @JsonProperty("subscribers_count")
+    public void setSubscribersCount(Integer subscribersCount) {
+        this.subscribersCount = subscribersCount;
+    }
+
+    @JsonProperty("network_count")
+    public Integer getNetworkCount() {
+        return networkCount;
+    }
+
+    @JsonProperty("network_count")
+    public void setNetworkCount(Integer networkCount) {
+        this.networkCount = networkCount;
     }
 
     @JsonAnyGetter
