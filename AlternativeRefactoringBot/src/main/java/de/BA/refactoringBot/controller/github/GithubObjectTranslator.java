@@ -46,7 +46,7 @@ public class GithubObjectTranslator {
 	 * @param repoService
 	 * @return
 	 */
-	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername,
+	public GitConfiguration createConfig(String repoName, String repoOwner, String botUsername,
 			String botPassword, String botToken, String repoService) {
 		// Erstelle Konfiguration
 		GitConfiguration config = new GitConfiguration();
@@ -278,3 +278,4 @@ public class GithubObjectTranslator {
 		return comment;
 	}
 }
+
