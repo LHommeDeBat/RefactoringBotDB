@@ -132,7 +132,7 @@ public class ApiGrabber {
 			githubGrabber.checkGithubUser(botUsername, botToken);
 
 			// Erstelle Konfiguration und den Fork
-			gitConfig = githubTranslator.createConfiguration(repoName, repoOwner, botUsername, botPassword, botToken,
+			gitConfig = githubTranslator.testConfig(repoName, repoOwner, botUsername, botPassword, botToken,
 					repoService);
 			githubGrabber.createFork(gitConfig);
 			return gitConfig;
@@ -178,3 +178,4 @@ public class ApiGrabber {
 		}
 	}
 }
+

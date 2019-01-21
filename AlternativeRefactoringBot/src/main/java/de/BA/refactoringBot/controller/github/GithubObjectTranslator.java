@@ -47,7 +47,7 @@ public class GithubObjectTranslator {
 	 * @return
 	 */
 	@Override
-	public GitConfiguration createConfiguration(String repoName, String repoOwner, String botUsername,
+	public GitConfiguration testConfig(String repoName, String repoOwner, String botUsername,
 			String botPassword, String botToken, String repoService) {
 		// Erstelle Konfiguration
 		GitConfiguration config = new GitConfiguration();
@@ -279,4 +279,5 @@ public class GithubObjectTranslator {
 		return comment;
 	}
 }
+
 
